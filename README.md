@@ -37,8 +37,8 @@ left behind if you delete the folder. First launch asks you to choose a
 master password, and you are in.
 
 <div align="center">
-<img src="social/screenshot.png" width="640" alt="Aegis lock screen" />
-<br/><sub>A real screenshot of the running app, not a mockup.</sub>
+<img src="social/demo.gif" width="100%" alt="Aegis: unlock, the account dashboard, typed credential profiles, the password generator, and the security page" />
+<br/><sub>A real screenshot capture of the running app, not a mockup.</sub>
 </div>
 
 ## What it is
@@ -291,7 +291,5 @@ MIT, see [LICENSE](LICENSE).
 ---
 
 <div align="center">
-
-[![Star History Chart](https://api.star-history.com/svg?repos=voyb/aegis-vault&type=Date)](https://star-history.com/#voyb/aegis-vault&Date)
-
+<img src="https://api.star-history.com/svg?repos=voyb/aegis-vault&type=Date" alt="Star History Chart" width="100%" />
 </div>
