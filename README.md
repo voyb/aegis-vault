@@ -223,6 +223,39 @@ the vault. Back it up regularly from Backup & Keys, Export .vlt backup,
 the exported file is the same ciphertext, still locked by your master
 password, safe to store anywhere.
 
+## FAQ
+
+**Does it sync across devices?**
+Not automatically, there is no server to sync through, that is the whole
+point. Export a `.vlt` backup from Backup & Keys and copy it to your
+other device, or copy the whole Aegis folder. Manual, on purpose.
+
+**What if I forget my master password?**
+There is no recovery. That is not a missing feature, it is what "no
+backdoor" actually means. Write it down somewhere safe until it is
+memorized.
+
+**Why does the installer need internet if this is an offline app?**
+The installer downloads the app once. After that, `index.html` itself
+never makes a network call, ever, you can check by watching your
+network monitor while using it, or just reading the file yourself, the
+whole thing (markup, styling, and logic together) is under 1,700 lines.
+
+**Is the crypto audited by a third party?**
+Not yet, formally. It uses standard, named primitives (Argon2id,
+AES-256-GCM) through WebCrypto and hash-wasm rather than anything
+custom, and the code is small enough to actually read. See
+[SECURITY.md](SECURITY.md), audits and review are welcome.
+
+**Can I trust a password manager that is a single HTML file?**
+That file is exactly what runs, there is no build step hiding what
+ships. Open it in a text editor and read it. The released executables
+are built from that same file by public CI, see the Actions tab.
+
+**What happens if I lose the device?**
+Whatever your last `.vlt` backup has. Back it up the way you would back
+up anything else you cannot afford to lose.
+
 ## Trust, but verify
 
 Security tools should not ask to be taken on faith. Every release binary
@@ -254,3 +287,11 @@ SECURITY.md          how to verify builds and report vulnerabilities
 ## License
 
 MIT, see [LICENSE](LICENSE).
+
+---
+
+<div align="center">
+
+[![Star History Chart](https://api.star-history.com/svg?repos=voyb/aegis-vault&type=Date)](https://star-history.com/#voyb/aegis-vault&Date)
+
+</div>
