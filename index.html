@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>AEGIS — Sovereign Vault</title>
+<title>AEGIS - Sovereign Vault</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 3 5 6v5c0 4.5 3 7.5 7 9 4-1.5 7-4.5 7-9V6l-7-3Z' fill='%230a0a0c' stroke='%23c9a86a' stroke-width='1.5'/%3E%3C/svg%3E" />
 <style>
   :root{
@@ -59,7 +59,7 @@
   .lock-err{color:var(--red); font-size:12px; margin-top:12px; min-height:16px; text-align:center; letter-spacing:.02em}
   .lock-foot{font-size:11px; color:var(--muted-2); text-align:center; max-width:420px; line-height:1.6}
   .lock-foot b{color:var(--muted)}
-  /* golden G — master-key fallback trigger */
+  /* golden G - master-key fallback trigger */
   .lock-brand b{cursor:pointer; transition:.2s; position:relative}
   .lock-brand b:hover{text-shadow:0 0 22px rgba(201,168,106,.85); color:#f0dcae}
   .lock-brand b:active{transform:scale(.94)}
@@ -124,7 +124,7 @@
   .btn-gold{background:linear-gradient(180deg,#d8b878,#b6975a); color:#141007; border:none; box-shadow:0 10px 26px -14px rgba(201,168,106,.6)}
   .btn-gold:hover{filter:brightness(1.06); background:linear-gradient(180deg,#d8b878,#b6975a)}
 
-  /* TILES — username trophies */
+  /* TILES - username trophies */
   .grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(238px,1fr)); gap:18px}
   .tile{position:relative; height:200px; border-radius:var(--radius); overflow:hidden; cursor:pointer;
     background:linear-gradient(180deg,#0d0d11,#070709); border:1px solid var(--line);
@@ -269,11 +269,11 @@
   <div class="crest" id="crest"></div>
   <div style="text-align:center">
     <div class="lock-title tracked-sm">Sovereign Vault</div>
-    <div class="lock-brand tracked">AE<b id="goldG" title="Master key — root of trust">G</b>IS</div>
+    <div class="lock-brand tracked">AE<b id="goldG" title="Master key - root of trust">G</b>IS</div>
   </div>
   <div class="lock-card">
     <h2 id="lockHead">Unlock the Vault</h2>
-    <p id="lockDesc">Enter your master key. It is never stored — it derives your encryption key in memory only.</p>
+    <p id="lockDesc">Enter your master key. It is never stored - it derives your encryption key in memory only.</p>
 
     <div id="paneCode" style="display:none">
       <input id="totpInput" class="code-input" inputmode="numeric" pattern="[0-9]*" maxlength="6"
@@ -299,7 +299,7 @@
   </div>
   <div class="lock-foot">
     <b>AES-256-GCM</b> · authenticated encryption · <span id="kdfName">key derivation</span> · in-memory keys.<br/>
-    Lose the master key and the vault is unrecoverable by design — there is no backdoor.
+    Lose the master key and the vault is unrecoverable by design - there is no backdoor.
   </div>
 </div>
 
@@ -341,7 +341,8 @@
       Security
     </button>
     <div class="side-foot">
-      Zero-disk plaintext · keys wiped on lock · no telemetry.<br/>v0.2 — Sovereign build
+      AEGIS: Autonomous Encrypted Guardian for Identity Security<br/>
+      Zero-disk plaintext · keys wiped on lock · no telemetry.<br/>v0.4 - Sovereign build
     </div>
   </div>
 
@@ -426,7 +427,7 @@ const enc = new TextEncoder(), dec = new TextDecoder();
 const b64 = buf => btoa(String.fromCharCode(...new Uint8Array(buf)));
 const unb64 = s => Uint8Array.from(atob(s), c=>c.charCodeAt(0));
 const hasArgon = () => typeof window.hashwasm !== 'undefined' && !!window.hashwasm.argon2id;
-/* The symbol existing isn't proof it runs — a host that blocks WebAssembly (CSP without
+/* The symbol existing isn't proof it runs - a host that blocks WebAssembly (CSP without
    'wasm-unsafe-eval') only fails when you actually call it. Probe once, cheaply, so we
    fall back to PBKDF2 up front instead of dying mid-unlock. */
 let ARGON_OK = null;
@@ -660,7 +661,7 @@ function qrEncode(text){
     applyMask(mask); drawFormat(mask);
     const s = qrPenalty(mod, size);
     if(s < bestScore){ bestScore = s; best = mask; }
-    applyMask(mask);                              // XOR is self-inverse — revert
+    applyMask(mask);                              // XOR is self-inverse - revert
   }
   applyMask(best); drawFormat(best);
   return {size, modules:mod};
@@ -676,7 +677,7 @@ function qrSvg(text){
 }
 
 /* ============================================================ SENTINEL (authenticator unlock) ============================================================
-   A 6-digit code carries ~20 bits and rotates — it cannot derive an AES key. So enrolling
+   A 6-digit code carries ~20 bits and rotates - it cannot derive an AES key. So enrolling
    stores the master key sealed under a key derived from the TOTP secret, and a valid code
    releases it. Convenience layer; the master key stays the root of trust. */
 const SENTINEL_KEY = 'aegis.sentinel.v1';
@@ -701,7 +702,7 @@ async function sentinelRelease(code){
   const rec = sentinelRec();
   if(!rec) throw {soft:'No authenticator enrolled on this device.'};
   if(!(await totpVerify(base32Decode(rec.secret), code)))
-    throw {soft:'Code rejected — check the app, and that this device’s clock is right.'};
+    throw {soft:'Code rejected - check the app, and that this device’s clock is right.'};
   const meta = rec.kdf==='argon2id' ? {kind:'argon2id', argon:rec.argon}
                                     : {kind:'pbkdf2', iterations:rec.iterations||PBKDF2_ITERS};
   const wk = await sentinelWrapKey(rec.secret, unb64(rec.salt), meta);
@@ -755,7 +756,7 @@ let isFirstRun = !localStorage.getItem(STORE_KEY);
 
 if(isFirstRun){
   document.getElementById('lockHead').textContent = 'Forge your Master Key';
-  document.getElementById('lockDesc').textContent = 'This key encrypts everything. It is never saved anywhere — choose something strong and unforgettable. There is no recovery.';
+  document.getElementById('lockDesc').textContent = 'This key encrypts everything. It is never saved anywhere - choose something strong and unforgettable. There is no recovery.';
   document.getElementById('confirmField').style.display = 'block';
   document.getElementById('unlockBtn').textContent = 'Seal the Vault';
 }
@@ -781,7 +782,7 @@ function setLockMode(m){
     totpInput.value = ''; setTimeout(()=>totpInput.focus(), 30);
   } else if(isFirstRun){
     head.textContent = 'Forge your Master Key';
-    desc.textContent = 'This key encrypts everything. It is never saved anywhere — choose something strong and unforgettable. There is no recovery.';
+    desc.textContent = 'This key encrypts everything. It is never saved anywhere - choose something strong and unforgettable. There is no recovery.';
     setTimeout(()=>mpw.focus(), 30);
   } else if(sentinelOn()){
     head.textContent = 'Master Key';
@@ -789,7 +790,7 @@ function setLockMode(m){
     setTimeout(()=>mpw.focus(), 30);
   } else {
     head.textContent = 'Unlock the Vault';
-    desc.textContent = 'Enter your master key. It is never stored — it derives your encryption key in memory only.';
+    desc.textContent = 'Enter your master key. It is never stored - it derives your encryption key in memory only.';
     setTimeout(()=>mpw.focus(), 30);
   }
 }
@@ -810,7 +811,7 @@ async function decryptRecord(rec, pw){
   const salt = unb64(rec.salt);
   let kdfmeta, key;
   if(rec.kdf==='argon2id'){
-    if(!(await argonWorks())) throw {soft:'Argon2 unavailable here — this vault needs it. Open it where WebAssembly is allowed.'};
+    if(!(await argonWorks())) throw {soft:'Argon2 unavailable here - this vault needs it. Open it where WebAssembly is allowed.'};
     kdfmeta={kind:'argon2id', argon:rec.argon}; key = await deriveKeyArgon(pw, salt, rec.argon);
   } else {
     kdfmeta={kind:'pbkdf2', iterations:rec.iterations||PBKDF2_ITERS};
@@ -844,7 +845,7 @@ async function openWithPassword(pw, creating){
       }catch(e2){ /* fall through to generic rejection */ }
     }
     KEY=null; SALT=null; KDFMETA=null;
-    throw {soft:'Vault sealed — credentials rejected.'};
+    throw {soft:'Vault sealed - credentials rejected.'};
   }
 }
 let UNLOCK_BUSY = false;
@@ -1073,7 +1074,7 @@ function accountCard(p, a){
       <div class="rowblock">
         <div class="row">
           <div class="k">${r.k}</div>
-          <div class="v ${r.secret?'secret':''}" ${r.secret?'data-secret':''}>${r.secret?'••••••••••••':esc(r.v||'—')}</div>
+          <div class="v ${r.secret?'secret':''}" ${r.secret?'data-secret':''}>${r.secret?'••••••••••••':esc(r.v||'-')}</div>
           <button class="copy" data-copy="${escAttr(r.v||'')}" ${r.secret?'data-secret-copy data-reveal':''}>${ICN.copy}</button>
         </div>
         ${r.note?`<div class="rownote">${esc(r.note)}</div>`:''}
@@ -1085,7 +1086,7 @@ function accountCard(p, a){
   const secretRow = el.querySelector('[data-secret]');
   if(secretRow){
     let shown=false; secretRow.style.cursor='pointer'; secretRow.title='Click to reveal';
-    secretRow.onclick = ()=>{ shown=!shown; secretRow.textContent = shown? (a.password||'—') : '••••••••••••'; };
+    secretRow.onclick = ()=>{ shown=!shown; secretRow.textContent = shown? (a.password||'-') : '••••••••••••'; };
   }
   el.querySelectorAll('[data-copy]').forEach(btn=> btn.onclick = ()=> copyToClipboard(btn.getAttribute('data-copy'), btn, btn.hasAttribute('data-secret-copy')) );
   return el;
@@ -1106,7 +1107,7 @@ function openPlatformPicker(){
     <div class="picker" id="picker"></div>
     <label class="lab">Or add ANY custom platform</label>
     <div class="mrow" style="align-items:center">
-      <input class="inp" id="customName" placeholder="Name — e.g. OnlyFans, Battle.net, Bluesky, Matrix"/>
+      <input class="inp" id="customName" placeholder="Name - e.g. OnlyFans, Battle.net, Bluesky, Matrix"/>
       <input class="swatch" id="customColor" type="color" value="#c9a86a" style="flex:none"/>
     </div>
     <div class="modal-actions">
@@ -1206,7 +1207,7 @@ function openAccountModal(p, existing){
       <button type="button" class="tg ${a.tls?'on':''}" id="d_tlsToggle"><span class="box">${ICN.check}</span>TLS required</button>`,
   };
   openModal(`
-    <h3>${existing?'Edit':'New'} Profile — ${esc(p.name)}</h3>
+    <h3>${existing?'Edit':'New'} Profile - ${esc(p.name)}</h3>
     <div class="msub">Every field is encrypted under your master key before it touches disk.</div>
     <label class="lab">Type</label>
     <div class="seg" id="kindSeg">
@@ -1412,22 +1413,22 @@ function renderGenerator(){
 /* ============================================================ SECURITY ============================================================ */
 function renderSecurity(){
   main.innerHTML = `
-    <div class="view-head"><div><h1 class="tracked-sm">Security</h1><div class="sub">What Aegis actually protects against — no more, no less.</div></div></div>
+    <div class="view-head"><div><h1 class="tracked-sm">Security</h1><div class="sub">What Aegis actually protects against - no more, no less.</div></div></div>
     <div class="panel">
       <h4>${ICN.shield} What holding the encrypted vault gets an attacker</h4>
-      <p>If someone obtains the encrypted vault itself — a stolen <b>.vlt</b> backup, a copied browser storage file, a disk image — they cannot recover your master password, your derived vault key, or any plaintext secret without the master password itself. This holds regardless of how long they hold the ciphertext or what future computing power they bring to it, as long as Argon2id/PBKDF2 and AES-256-GCM remain uncompromised.</p>
+      <p>If someone obtains the encrypted vault itself - a stolen <b>.vlt</b> backup, a copied browser storage file, a disk image - they cannot recover your master password, your derived vault key, or any plaintext secret without the master password itself. This holds regardless of how long they hold the ciphertext or what future computing power they bring to it, as long as Argon2id/PBKDF2 and AES-256-GCM remain uncompromised.</p>
     </div>
     <div class="panel">
       <h4>${ICN.eye} What Aegis cannot protect against</h4>
-      <p>An attacker with live control of your <i>unlocked</i> device is a different, unsolvable problem. While the vault is open, plaintext exists in memory, in the page, and possibly the clipboard — malware, a malicious browser extension, or someone physically watching can capture it in that moment. Auto-lock, clipboard auto-clear, and never sending plaintext anywhere shrink this window — nothing shrinks it to zero. This is true of every password manager, not a weakness unique to Aegis.</p>
+      <p>An attacker with live control of your <i>unlocked</i> device is a different, unsolvable problem. While the vault is open, plaintext exists in memory, in the page, and possibly the clipboard - malware, a malicious browser extension, or someone physically watching can capture it in that moment. Auto-lock, clipboard auto-clear, and never sending plaintext anywhere shrink this window - nothing shrinks it to zero. This is true of every password manager, not a weakness unique to Aegis.</p>
     </div>
     <div class="panel">
       <h4>${ICN.key} Why there's no anti-tamper, corruption, or self-destruct system</h4>
-      <p>A wrong master key already fails AES-GCM's authentication tag — the result is indistinguishable from noise, with zero risk of a false trigger destroying your real data. That's the honest version of "wrong key gets nothing." A mutable tripwire that intentionally corrupts data would only add a way to lose your own vault by accident.</p>
+      <p>A wrong master key already fails AES-GCM's authentication tag - the result is indistinguishable from noise, with zero risk of a false trigger destroying your real data. That's the honest version of "wrong key gets nothing." A mutable tripwire that intentionally corrupts data would only add a way to lose your own vault by accident.</p>
     </div>
     <div class="panel">
       <h4>${ICN.crown} The duress vault is a detection layer, not a disguise</h4>
-      <p>The duress vault (Backup &amp; Keys) opens a separate, real vault under a second password — it never alters or hides the real vault's ciphertext. The math that protects your actual vault doesn't change depending on who's asking.</p>
+      <p>The duress vault (Backup &amp; Keys) opens a separate, real vault under a second password - it never alters or hides the real vault's ciphertext. The math that protects your actual vault doesn't change depending on who's asking.</p>
     </div>`;
 }
 
@@ -1437,15 +1438,15 @@ function renderBackup(){
   const rec = sentinelRec(), on = sentinelOn();
   const decoyOn = !!localStorage.getItem(DECOY_KEY);
   main.innerHTML = `
-    <div class="view-head"><div><h1 class="tracked-sm">Backup &amp; Keys</h1><div class="sub">Your vault currently lives only in this app's local storage — export a sealed copy so you can never lose it.</div></div></div>
+    <div class="view-head"><div><h1 class="tracked-sm">Backup &amp; Keys</h1><div class="sub">Your vault currently lives only in this app's local storage - export a sealed copy so you can never lose it.</div></div></div>
     ${DECOY_MODE ? '' : `
     <div class="panel">
-      <h4>${ICN.phone} Sentinel — authenticator unlock</h4>
+      <h4>${ICN.phone} Sentinel - authenticator unlock</h4>
       <div class="status-line">
         <span class="sdot" style="background:${on?'var(--green)':'var(--muted-2)'};box-shadow:${on?'0 0 8px var(--green)':'none'}"></span>
-        ${on ? `Enrolled${rec && rec.added?` · ${esc(rec.added)}`:''} — unlock with a 6-digit code` : 'Not enrolled — master key only'}
+        ${on ? `Enrolled${rec && rec.added?` · ${esc(rec.added)}`:''} - unlock with a 6-digit code` : 'Not enrolled - master key only'}
       </div>
-      <p>Pair <b>Bitwarden Authenticator</b> — or Google Authenticator, Authy, 1Password, Proton Pass, any standard TOTP app. The lock screen then asks for the rotating 6-digit code, and your master key moves behind the golden <b>G</b> as the always-works fallback.</p>
+      <p>Pair <b>Bitwarden Authenticator</b> - or Google Authenticator, Authy, 1Password, Proton Pass, any standard TOTP app. The lock screen then asks for the rotating 6-digit code, and your master key moves behind the golden <b>G</b> as the always-works fallback.</p>
       ${on
         ? `<div style="display:flex;gap:10px;flex-wrap:wrap">
              <button class="btn-ghost" id="reEnroll">${ICN.refresh} Re-pair device</button>
@@ -1453,23 +1454,23 @@ function renderBackup(){
            </div>`
         : `<button class="btn-ghost btn-gold" id="doEnroll">${ICN.phone} Set up authenticator</button>`}
       <div class="warnbox">
-        <b>Read this before enabling.</b> A 6-digit code is far too small to be an encryption key, so enrolling stores your master key on this device, sealed under a key derived from the authenticator secret. That secret also lives here — it has to, to check your codes. So anyone who can read this device's browser storage can recover the vault <b>without</b> the code. It is a convenience lock, not a second wall. Your master key alone remains the strong path — leave Sentinel off if the threat you care about is someone getting your files.
+        <b>Read this before enabling.</b> A 6-digit code is far too small to be an encryption key, so enrolling stores your master key on this device, sealed under a key derived from the authenticator secret. That secret also lives here - it has to, to check your codes. So anyone who can read this device's browser storage can recover the vault <b>without</b> the code. It is a convenience lock, not a second wall. Your master key alone remains the strong path - leave Sentinel off if the threat you care about is someone getting your files.
       </div>
     </div>
     <div class="panel">
       <h4>${ICN.crown} Duress vault</h4>
       <div class="status-line">
         <span class="sdot" style="background:${decoyOn?'var(--green)':'var(--muted-2)'};box-shadow:${decoyOn?'0 0 8px var(--green)':'none'}"></span>
-        ${decoyOn ? 'Configured — a second password opens a decoy vault' : 'Not configured'}
+        ${decoyOn ? 'Configured - a second password opens a decoy vault' : 'Not configured'}
       </div>
-      <p>Set a second password that opens a completely separate, real-looking vault instead of this one. If you're ever forced to unlock Aegis, give up the duress password instead — whoever's watching gets a normal vault with nothing to protect, and this one is never touched or altered.</p>
+      <p>Set a second password that opens a completely separate, real-looking vault instead of this one. If you're ever forced to unlock Aegis, give up the duress password instead - whoever's watching gets a normal vault with nothing to protect, and this one is never touched or altered.</p>
       ${decoyOn
         ? `<button class="btn-ghost" id="offDecoy" style="border-color:#5a2a2a;color:#e08a8a">${ICN.trash} Remove duress vault</button>`
         : `<button class="btn-ghost btn-gold" id="doDecoy">${ICN.crown} Set up duress vault</button>`}
     </div>`}
     <div class="panel">
       <h4>${ICN.down} Export encrypted backup</h4>
-      <p>Downloads a <b>.vlt</b> file — the exact same AES-256-GCM ciphertext, still locked by your master key. Safe to store on a USB stick, another drive, or the cloud: without the master key it is meaningless noise.</p>
+      <p>Downloads a <b>.vlt</b> file - the exact same AES-256-GCM ciphertext, still locked by your master key. Safe to store on a USB stick, another drive, or the cloud: without the master key it is meaningless noise.</p>
       <button class="btn-ghost btn-gold" id="doExport">${ICN.down} Export .vlt backup</button>
     </div>
     <div class="panel">
@@ -1519,12 +1520,12 @@ function renderBackup(){
 }
 function openSentinelSetup(){
   const secret = base32Encode(crypto.getRandomValues(new Uint8Array(20)));
-  /* every parameter stated outright rather than left to each app's defaults —
+  /* every parameter stated outright rather than left to each app's defaults -
      Bitwarden, Google Authenticator, Authy, 1Password, Proton Pass all read this form */
   const uri = `otpauth://totp/Aegis:vault?secret=${secret}&issuer=Aegis&algorithm=SHA1&digits=6&period=30`;
   let qr;
   try{ qr = qrSvg(uri); }
-  catch(e){ qr = `<div style="color:var(--muted-2);font-size:12px;text-align:center">QR unavailable — use the setup key below.</div>`; }
+  catch(e){ qr = `<div style="color:var(--muted-2);font-size:12px;text-align:center">QR unavailable - use the setup key below.</div>`; }
   openModal(`
     <h3>Set up authenticator</h3>
     <div class="msub">Pair a TOTP app, then unlock with a rotating 6-digit code.</div>
@@ -1532,7 +1533,7 @@ function openSentinelSetup(){
     <div class="step"><div class="sn">1</div><div><b>Confirm it's you.</b> Your master key gets sealed under the authenticator secret, so it has to be entered once.</div></div>
     <input class="inp" id="s_master" type="password" placeholder="Master key" autocomplete="off" spellcheck="false"/>
 
-    <div class="step" style="margin-top:20px"><div class="sn">2</div><div><b>Scan this in Bitwarden</b> — Authenticator tab → <b>+</b> → Scan QR code. (Or in the Bitwarden extension: edit an item → Authenticator key → Scan.) Any other TOTP app works too: Google Authenticator, Authy, 1Password, Proton Pass. No camera? Use <b>Enter key manually</b> and paste the setup key below.</div></div>
+    <div class="step" style="margin-top:20px"><div class="sn">2</div><div><b>Scan this in Bitwarden</b> - Authenticator tab → <b>+</b> → Scan QR code. (Or in the Bitwarden extension: edit an item → Authenticator key → Scan.) Any other TOTP app works too: Google Authenticator, Authy, 1Password, Proton Pass. No camera? Use <b>Enter key manually</b> and paste the setup key below.</div></div>
     <div class="qr-box">
       ${qr}
       <div class="seckey" id="s_secret">${secret.replace(/(.{4})/g,'$1 ').trim()}</div>
@@ -1544,7 +1545,7 @@ function openSentinelSetup(){
            style="font-family:ui-monospace,monospace;font-size:20px;text-align:center;letter-spacing:.35em"/>
 
     <div class="warnbox">
-      <b>The honest tradeoff:</b> this stores your master key on this device, unlocked by a secret that also lives here. It defends against someone glancing at your screen — <b>not</b> against someone who copies your browser storage. Keep a <b>.vlt</b> backup and remember your master key regardless.
+      <b>The honest tradeoff:</b> this stores your master key on this device, unlocked by a secret that also lives here. It defends against someone glancing at your screen - <b>not</b> against someone who copies your browser storage. Keep a <b>.vlt</b> backup and remember your master key regardless.
     </div>
 
     <div class="modal-actions">
@@ -1565,9 +1566,9 @@ function openSentinelSetup(){
     await new Promise(r=>setTimeout(r,20));
     try{
       if(!(await verifyMasterPassword(pw))){ toast('Master key rejected'); return; }
-      if(!(await totpVerify(base32Decode(secret), code))){ toast('Code did not match — check the pairing and your clock'); return; }
+      if(!(await totpVerify(base32Decode(secret), code))){ toast('Code did not match - check the pairing and your clock'); return; }
       await sentinelEnroll(pw, secret);
-      closeModal(); toast('Sentinel armed — next unlock takes a code'); render();
+      closeModal(); toast('Sentinel armed - next unlock takes a code'); render();
     }catch(e){ toast('Setup failed'); }
     finally{ btn.disabled=false; btn.textContent='Enable Sentinel'; btn.style.opacity=''; }
   };
@@ -1592,7 +1593,7 @@ function importBackup(file){
       if(!confirm('Restore this backup? It will replace the current vault and re-lock.')) return;
       localStorage.setItem(activeStoreKey(), reader.result);
       if(!DECOY_MODE) sentinelClear();   // that vault has a different master key
-      toast('Backup restored — unlock with its master key');
+      toast('Backup restored - unlock with its master key');
       setTimeout(()=>location.reload(), 900);
     }catch(e){ toast('Invalid or corrupted .vlt file'); }
   };
@@ -1638,7 +1639,7 @@ function openDecoySetup(){
     <label class="lab">Confirm</label>
     <input class="inp" id="dz_pw2" type="password"/>
     <div class="warnbox">
-      <b>Detection layer, not a crypto substitute.</b> This never changes your real vault's ciphertext — it's a separate, independently encrypted vault, auto-filled with plausible fake accounts on every platform you currently have. Nothing here endangers the real one.
+      <b>Detection layer, not a crypto substitute.</b> This never changes your real vault's ciphertext - it's a separate, independently encrypted vault, auto-filled with plausible fake accounts on every platform you currently have. Nothing here endangers the real one.
     </div>
     <div class="modal-actions">
       <button class="b-cancel" id="cancel">Cancel</button>
