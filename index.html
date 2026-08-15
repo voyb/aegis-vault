@@ -1,0 +1,1693 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AEGIS — Sovereign Vault</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 3 5 6v5c0 4.5 3 7.5 7 9 4-1.5 7-4.5 7-9V6l-7-3Z' fill='%230a0a0c' stroke='%23c9a86a' stroke-width='1.5'/%3E%3C/svg%3E" />
+<style>
+  :root{
+    --black:#050506; --panel:#0b0b0d; --panel-2:#101014;
+    --line:#1c1c22; --line-soft:#141419; --gunmetal:#2a2a33;
+    --ghost:#f4f4f6; --muted:#8a8a95; --muted-2:#5a5a66;
+    --gold:#c9a86a; --gold-soft:#a98f57;
+    --green:#4ec98b; --blue:#4ea6d8; --amber:#d8a94e; --red:#d85e5e; --gray:#6a6a74;
+    --radius:18px;
+    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  *{box-sizing:border-box; margin:0; padding:0}
+  html,body{height:100%}
+  body{
+    font-family:var(--font);
+    background:
+      radial-gradient(1200px 700px at 70% -10%, #131318 0%, transparent 55%),
+      radial-gradient(900px 600px at 10% 110%, #0e0e12 0%, transparent 50%),
+      var(--black);
+    color:var(--ghost); -webkit-font-smoothing:antialiased; overflow:hidden;
+  }
+  body::after{ content:""; position:fixed; inset:0; pointer-events:none; z-index:9999;
+    background:radial-gradient(120% 120% at 50% 40%, transparent 60%, rgba(0,0,0,.55) 100%); mix-blend-mode:multiply; }
+  button{font-family:inherit; cursor:pointer; color:inherit; border:none; background:none}
+  input,select,textarea{font-family:inherit; color:var(--ghost)}
+  ::-webkit-scrollbar{width:10px; height:10px}
+  ::-webkit-scrollbar-thumb{background:#1d1d24; border-radius:20px; border:3px solid transparent; background-clip:content-box}
+  ::selection{background:rgba(201,168,106,.28)}
+  .tracked{letter-spacing:.28em} .tracked-sm{letter-spacing:.18em}
+
+  /* LOCK */
+  #lock{position:fixed; inset:0; z-index:200; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:26px;
+        background:radial-gradient(900px 600px at 50% 30%, #121218 0%, var(--black) 70%);}
+  .crest{width:86px; height:86px; border-radius:22px; display:grid; place-items:center;
+    background:linear-gradient(160deg,#15151b,#08080a); border:1px solid #24242c;
+    box-shadow:0 0 0 1px rgba(201,168,106,.08), 0 30px 80px -30px rgba(0,0,0,.9), inset 0 1px 0 rgba(255,255,255,.04);}
+  .crest svg{width:44px; height:44px}
+  .lock-title{font-size:13px; color:var(--muted); text-transform:uppercase}
+  .lock-brand{font-size:34px; font-weight:600; text-transform:uppercase; color:var(--ghost)}
+  .lock-brand b{color:var(--gold); font-weight:600}
+  .lock-card{width:min(420px,90vw); background:linear-gradient(180deg, rgba(18,18,22,.9), rgba(9,9,11,.9));
+    border:1px solid var(--line); border-radius:var(--radius); padding:26px; backdrop-filter:blur(14px); box-shadow:0 40px 120px -40px rgba(0,0,0,.9);}
+  .lock-card h2{font-size:15px; font-weight:500; margin-bottom:4px}
+  .lock-card p{font-size:12.5px; color:var(--muted); margin-bottom:20px; line-height:1.5}
+  .field{position:relative; margin-bottom:14px}
+  .field input{width:100%; background:#08080a; border:1px solid var(--line); border-radius:12px; padding:14px 44px 14px 16px; font-size:14px; letter-spacing:.06em; outline:none; transition:.2s}
+  .field input:focus{border-color:var(--gold-soft); box-shadow:0 0 0 3px rgba(201,168,106,.1)}
+  .field .eye{position:absolute; right:8px; top:50%; transform:translateY(-50%); width:32px; height:32px; display:grid; place-items:center; color:var(--muted-2)}
+  .field .eye:hover{color:var(--ghost)}
+  .btn-primary{width:100%; padding:14px; border-radius:12px; font-size:13px; font-weight:600; text-transform:uppercase;
+    background:linear-gradient(180deg,#d8b878,#b6975a); color:#141007; box-shadow:0 10px 30px -12px rgba(201,168,106,.5); transition:.15s}
+  .btn-primary:hover{filter:brightness(1.06)} .btn-primary:active{transform:translateY(1px)}
+  .lock-err{color:var(--red); font-size:12px; margin-top:12px; min-height:16px; text-align:center; letter-spacing:.02em}
+  .lock-foot{font-size:11px; color:var(--muted-2); text-align:center; max-width:420px; line-height:1.6}
+  .lock-foot b{color:var(--muted)}
+  /* golden G — master-key fallback trigger */
+  .lock-brand b{cursor:pointer; transition:.2s; position:relative}
+  .lock-brand b:hover{text-shadow:0 0 22px rgba(201,168,106,.85); color:#f0dcae}
+  .lock-brand b:active{transform:scale(.94)}
+  /* sentinel code entry */
+  .code-input{width:100%; background:#08080a; border:1px solid var(--line); border-radius:12px; padding:16px; outline:none; transition:.2s;
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:30px; font-weight:600; text-align:center; letter-spacing:.42em; text-indent:.42em; color:var(--gold)}
+  .code-input:focus{border-color:var(--gold-soft); box-shadow:0 0 0 3px rgba(201,168,106,.1)}
+  .code-input::placeholder{color:#26262e; letter-spacing:.42em}
+  .code-timer{height:3px; border-radius:3px; background:#141419; margin:12px 0 16px; overflow:hidden}
+  .code-timer i{display:block; height:100%; background:linear-gradient(90deg,var(--gold-soft),var(--gold)); border-radius:3px; transition:width .95s linear}
+  .code-hint{font-size:11px; color:var(--muted-2); text-align:center; margin-top:14px; line-height:1.6}
+  .code-hint b{color:var(--gold-soft)}
+  /* enrollment */
+  .qr-box{display:flex; flex-direction:column; align-items:center; gap:14px; padding:22px; background:#06060a; border:1px solid var(--line); border-radius:15px; margin-top:8px}
+  .qr-box svg{width:196px; height:196px; background:#fff; padding:11px; border-radius:11px; display:block}
+  .seckey{font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:13px; color:var(--gold); word-break:break-all; text-align:center;
+    background:#0a0a0e; border:1px solid var(--line); border-radius:10px; padding:11px 14px; letter-spacing:.1em; width:100%}
+  .step{display:flex; gap:12px; align-items:flex-start; margin-bottom:14px; font-size:12.5px; color:var(--muted); line-height:1.55}
+  .step .sn{width:22px; height:22px; border-radius:50%; border:1px solid var(--gold-soft); color:var(--gold); font-size:11px; display:grid; place-items:center; flex:none; margin-top:1px}
+  .step b{color:var(--ghost); font-weight:600}
+  .warnbox{border:1px solid #4a3a1d; background:rgba(216,169,78,.05); border-radius:12px; padding:14px 16px; font-size:11.5px; color:#cbb389; line-height:1.6; margin-top:16px}
+  .warnbox b{color:var(--amber)}
+  .status-line{display:flex; align-items:center; gap:9px; font-size:12px; color:var(--muted); margin-bottom:16px}
+  .status-line .sdot{width:8px; height:8px; border-radius:50%; flex:none}
+
+  /* SHELL */
+  #app{display:none; height:100vh; grid-template-columns:238px 1fr; grid-template-rows:64px 1fr}
+  #app.on{display:grid}
+  .topbar{grid-column:1/3; display:flex; align-items:center; gap:18px; padding:0 22px; border-bottom:1px solid var(--line-soft); background:rgba(8,8,10,.7); backdrop-filter:blur(10px)}
+  .brand{display:flex; align-items:center; gap:12px}
+  .brand .mark{width:34px; height:34px; border-radius:10px; display:grid; place-items:center; background:linear-gradient(160deg,#15151b,#08080a); border:1px solid #24242c}
+  .brand .mark svg{width:19px;height:19px}
+  .brand .name{font-size:15px; font-weight:600; text-transform:uppercase}
+  .brand .name b{color:var(--gold); font-weight:600}
+  .search{flex:1; max-width:460px; margin-left:8px; position:relative}
+  .search input{width:100%; background:#0a0a0c; border:1px solid var(--line); border-radius:11px; padding:9px 14px 9px 38px; font-size:13px; outline:none; transition:.2s}
+  .search input:focus{border-color:var(--gold-soft)}
+  .search svg{position:absolute; left:12px; top:50%; transform:translateY(-50%); width:15px; height:15px; color:var(--muted-2)}
+  .top-actions{margin-left:auto; display:flex; align-items:center; gap:10px}
+  .pill{display:flex; align-items:center; gap:8px; font-size:11px; color:var(--muted); padding:7px 12px; border:1px solid var(--line); border-radius:20px}
+  .dot-live{width:7px; height:7px; border-radius:50%; background:var(--green); box-shadow:0 0 8px var(--green)}
+  .icon-btn{width:36px; height:36px; border-radius:10px; border:1px solid var(--line); display:grid; place-items:center; color:var(--muted); transition:.15s}
+  .icon-btn:hover{color:var(--ghost); border-color:var(--gunmetal)}
+
+  .side{border-right:1px solid var(--line-soft); padding:16px 12px; display:flex; flex-direction:column; gap:4px; background:rgba(6,6,8,.5); overflow:auto}
+  .side .label{font-size:10px; color:var(--muted-2); text-transform:uppercase; padding:12px 12px 6px}
+  .nav{display:flex; align-items:center; gap:12px; padding:11px 12px; border-radius:11px; color:var(--muted); font-size:13.5px; transition:.15s; position:relative; text-align:left; width:100%}
+  .nav svg{width:18px; height:18px; flex:none}
+  .nav:hover{background:#0f0f13; color:var(--ghost)}
+  .nav.active{background:linear-gradient(90deg, rgba(201,168,106,.10), transparent); color:var(--ghost)}
+  .nav.active::before{content:""; position:absolute; left:0; top:9px; bottom:9px; width:2.5px; border-radius:3px; background:var(--gold)}
+  .nav .count{margin-left:auto; font-size:11px; color:var(--muted-2); background:#0e0e12; padding:2px 8px; border-radius:10px}
+  .side-foot{margin-top:auto; padding:12px; font-size:10.5px; color:var(--muted-2); line-height:1.6}
+
+  .main{overflow:auto; padding:26px 30px 60px}
+  .view-head{display:flex; align-items:flex-end; justify-content:space-between; margin-bottom:22px; gap:16px; flex-wrap:wrap}
+  .view-head h1{font-size:22px; font-weight:600; text-transform:uppercase}
+  .view-head .sub{font-size:12.5px; color:var(--muted); margin-top:6px}
+  .btn-ghost{display:inline-flex; align-items:center; gap:8px; font-size:12.5px; font-weight:500; padding:10px 16px; border:1px solid var(--line); border-radius:11px; color:var(--ghost); transition:.15s; text-transform:uppercase; letter-spacing:.04em}
+  .btn-ghost:hover{border-color:var(--gold-soft); background:rgba(201,168,106,.05)}
+  .btn-ghost svg{width:15px;height:15px}
+  .btn-gold{background:linear-gradient(180deg,#d8b878,#b6975a); color:#141007; border:none; box-shadow:0 10px 26px -14px rgba(201,168,106,.6)}
+  .btn-gold:hover{filter:brightness(1.06); background:linear-gradient(180deg,#d8b878,#b6975a)}
+
+  /* TILES — username trophies */
+  .grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(238px,1fr)); gap:18px}
+  .tile{position:relative; height:200px; border-radius:var(--radius); overflow:hidden; cursor:pointer;
+    background:linear-gradient(180deg,#0d0d11,#070709); border:1px solid var(--line);
+    box-shadow:0 24px 60px -34px rgba(0,0,0,.9), inset 0 1px 0 rgba(255,255,255,.03); transition:.22s cubic-bezier(.2,.7,.3,1)}
+  .tile:hover{transform:translateY(-4px); border-color:var(--tile-color,#33333c)}
+  .tile:hover .tile-glow{opacity:.6}
+  .tile:hover .tile-spot{opacity:.22}
+  .tile:hover .trophy-name{filter:brightness(1.08)}
+  .tile-spot{position:absolute; left:50%; top:36%; width:300px; height:300px; transform:translate(-50%,-50%);
+    background:radial-gradient(circle, var(--tile-color,#c9a86a) 0%, transparent 60%); opacity:.13; transition:.3s; pointer-events:none}
+  .tile-glow{position:absolute; inset:-1px; border-radius:var(--radius); opacity:0; transition:.3s;
+    background:radial-gradient(60% 60% at 50% 0%, var(--tile-color,#333) 0%, transparent 70%); mix-blend-mode:screen}
+  .tile-body{position:absolute; inset:0; padding:16px 17px; display:flex; flex-direction:column}
+  .tile-eyebrow{display:flex; align-items:center; justify-content:space-between; gap:8px}
+  .tile-plat{font-size:10px; text-transform:uppercase; letter-spacing:.2em; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .tile-pips{display:flex; align-items:center; gap:4px; flex:none}
+  .tile-pips .u-dot{width:6px; height:6px; border-radius:50%; box-shadow:0 0 6px -1px currentColor}
+  .trophy{flex:1; min-height:0; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:7px; padding:2px}
+  .trophy-crown{width:21px; height:21px; color:var(--tile-color,var(--gold)); opacity:.9; filter:drop-shadow(0 2px 7px rgba(0,0,0,.6)); flex:none}
+  .trophy-crown svg{width:100%; height:100%}
+  .trophy-name{max-width:100%; font-size:22px; font-weight:700; line-height:1.05; letter-spacing:.005em;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-family:"Segoe UI",Inter,var(--font);
+    background:linear-gradient(180deg,#fbf1d6 0%,#e7cd97 42%,#c9a86a 74%,#a98f57 100%);
+    -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent}
+  .trophy-plinth{width:44px; height:2px; border-radius:2px; background:linear-gradient(90deg,transparent,var(--gold-soft),transparent); opacity:.7}
+  .trophy-sub{font-size:10.5px; color:var(--muted-2); letter-spacing:.03em; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+  .trophy-empty .trophy-name{background:none; -webkit-text-fill-color:initial; color:var(--muted-2); font-weight:600; font-size:16px; letter-spacing:.03em; font-family:var(--font)}
+  .trophy-empty .trophy-crown{opacity:.32; color:var(--muted-2)}
+  .tile-bottom{display:flex; align-items:center; justify-content:space-between}
+  .tile-count{font-size:12px; color:var(--ghost)}
+  .tile-count b{font-size:19px; font-weight:600; letter-spacing:-.01em}
+  .tile-count span{color:var(--muted); font-size:9.5px; margin-left:5px; text-transform:uppercase; letter-spacing:.12em}
+  .tile-crest{font-size:9px; text-transform:uppercase; letter-spacing:.18em; color:var(--muted-2)}
+  .tile.add{display:grid; place-items:center; border-style:dashed; border-color:#26262e; background:transparent; color:var(--muted); height:200px}
+  .tile.add:hover{border-color:var(--gold-soft); color:var(--gold); transform:translateY(-4px)}
+  .tile.add .plus{width:44px;height:44px;border-radius:12px;border:1px solid currentColor;display:grid;place-items:center;margin-bottom:12px; opacity:.7}
+  .tile.add span{font-size:12px; text-transform:uppercase; letter-spacing:.12em}
+
+  /* PLATFORM DETAIL */
+  .pf-head{display:flex; align-items:center; gap:16px; margin-bottom:8px}
+  .back{display:inline-flex; align-items:center; gap:8px; font-size:12px; color:var(--muted); margin-bottom:18px; text-transform:uppercase; letter-spacing:.08em}
+  .back:hover{color:var(--ghost)} .back svg{width:14px;height:14px}
+  .acct{display:grid; grid-template-columns:1fr; gap:12px; margin-top:22px}
+  .acard{background:linear-gradient(180deg,#0c0c10,#08080a); border:1px solid var(--line); border-radius:15px; padding:18px 20px; transition:.18s}
+  .acard:hover{border-color:var(--gunmetal)}
+  .acard-top{display:flex; align-items:center; gap:12px; margin-bottom:14px}
+  .acard-alias{font-size:15px; font-weight:600}
+  .status-tag{font-size:10px; text-transform:uppercase; letter-spacing:.1em; padding:4px 10px; border-radius:20px; border:1px solid; font-weight:600}
+  .acard-tools{margin-left:auto; display:flex; gap:6px}
+  .rowblock{border-top:1px solid var(--line-soft)} .rowblock:first-of-type{border-top:none}
+  .row{display:grid; grid-template-columns:120px 1fr auto; gap:12px; align-items:center; padding:9px 0; font-size:13px}
+  .row .k{color:var(--muted-2); font-size:11px; text-transform:uppercase; letter-spacing:.08em}
+  .row .v{color:var(--ghost); font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:13px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .row .v.secret{letter-spacing:.16em}
+  .rownote{font-size:11px; color:var(--muted); padding:0 0 9px 132px; margin-top:-3px; line-height:1.4}
+  .rownote::before{content:"↳ "; color:var(--muted-2)}
+  .copy{width:30px;height:30px;border-radius:8px;border:1px solid var(--line); display:grid; place-items:center; color:var(--muted-2); position:relative; overflow:hidden; transition:.15s}
+  .copy:hover{color:var(--ghost); border-color:var(--gunmetal)}
+  .copy svg{width:14px;height:14px}
+  .copy.done{color:var(--green); border-color:var(--green)}
+  .copy .sweep{position:absolute; inset:0; background:linear-gradient(90deg,transparent,rgba(78,201,139,.35),transparent); transform:translateX(-100%)}
+  .copy.done .sweep{animation:sweep .6s ease}
+  @keyframes sweep{to{transform:translateX(100%)}}
+  .empty{text-align:center; padding:60px 20px; color:var(--muted)}
+  .empty svg{width:40px;height:40px; opacity:.4; margin-bottom:14px}
+  .empty p{font-size:13px; margin-bottom:20px}
+
+  /* MODAL */
+  #modal{position:fixed; inset:0; z-index:150; display:none; align-items:center; justify-content:center; padding:20px; background:rgba(2,2,3,.72); backdrop-filter:blur(8px)}
+  #modal.on{display:flex}
+  .modal-card{width:min(580px,96vw); max-height:92vh; overflow:auto; background:linear-gradient(180deg,#0e0e12,#0a0a0c); border:1px solid var(--line); border-radius:22px; box-shadow:0 60px 160px -50px rgba(0,0,0,.95); padding:26px}
+  .modal-card h3{font-size:16px; font-weight:600; text-transform:uppercase; letter-spacing:.04em}
+  .modal-card .msub{font-size:12px; color:var(--muted); margin-top:6px; margin-bottom:22px}
+  .mrow{display:flex; gap:12px} .mrow > *{flex:1; min-width:0}
+  label.lab{display:block; font-size:10.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; margin:14px 0 7px}
+  .inp{width:100%; background:#08080a; border:1px solid var(--line); border-radius:11px; padding:12px 14px; font-size:13.5px; outline:none; transition:.15s}
+  .inp:focus{border-color:var(--gold-soft); box-shadow:0 0 0 3px rgba(201,168,106,.08)}
+  .inp.note{padding:9px 12px; font-size:12px; color:var(--muted)}
+  textarea.inp{resize:vertical; min-height:70px}
+  .pw-wrap{position:relative}
+  .pw-wrap .inp{padding-right:82px; font-family:ui-monospace,monospace}
+  .pw-wrap .pw-btns{position:absolute; right:6px; top:50%; transform:translateY(-50%); display:flex; gap:4px}
+  .mini{width:32px;height:32px;border-radius:8px; display:grid; place-items:center; color:var(--muted-2)}
+  .mini:hover{color:var(--gold)} .mini svg{width:15px;height:15px}
+  .modal-actions{display:flex; gap:12px; margin-top:26px}
+  .modal-actions button{flex:1; padding:13px; border-radius:12px; font-size:12.5px; font-weight:600; text-transform:uppercase; letter-spacing:.05em}
+  .b-cancel{border:1px solid var(--line); color:var(--muted)}
+  .b-cancel:hover{color:var(--ghost); border-color:var(--gunmetal)}
+  .picker{display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-top:6px; max-height:300px; overflow:auto; padding:2px}
+  .pick{display:flex; flex-direction:column; align-items:center; gap:8px; padding:14px 6px; border:1px solid var(--line); border-radius:13px; transition:.15s}
+  .pick:hover{border-color:var(--gunmetal); background:#0f0f13}
+  .pick.sel{border-color:var(--gold); background:rgba(201,168,106,.06)}
+  .pick .pi{width:30px;height:30px; display:grid; place-items:center}
+  .pick .pi svg{width:26px;height:26px}
+  .pick small{font-size:10.5px; color:var(--muted); text-align:center}
+  .pick.other{border-style:dashed; color:var(--gold)}
+  .seg{display:flex; gap:6px; flex-wrap:wrap}
+  .seg .opt{padding:8px 13px; border:1px solid var(--line); border-radius:20px; font-size:11.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em}
+  .seg .opt.sel{color:var(--ghost); border-color:currentColor}
+  .swatch{width:46px; height:46px; padding:0; border:1px solid var(--line); border-radius:11px; background:#08080a; cursor:pointer}
+  .swatch::-webkit-color-swatch-wrapper{padding:4px} .swatch::-webkit-color-swatch{border:none; border-radius:7px}
+
+  /* GENERATOR */
+  .gen-card{max-width:660px; background:linear-gradient(180deg,#0c0c10,#08080a); border:1px solid var(--line); border-radius:18px; padding:26px}
+  .gen-out{position:relative; background:#060608; border:1px solid var(--line); border-radius:13px; padding:22px; font-family:ui-monospace,monospace; font-size:20px; letter-spacing:.03em; word-break:break-all; min-height:70px; display:flex; align-items:center; color:#eaeaf0}
+  .gen-strength{height:6px; border-radius:6px; background:#141419; margin-top:16px; overflow:hidden}
+  .gen-strength i{display:block; height:100%; width:0; transition:.35s; border-radius:6px}
+  .gen-stats{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:16px}
+  .gstat{background:#0a0a0e; border:1px solid var(--line); border-radius:12px; padding:14px 15px; min-width:0}
+  .gstat .glab{font-size:9px; color:var(--muted-2); text-transform:uppercase; letter-spacing:.12em; margin-bottom:7px}
+  .gstat .gval{font-size:14.5px; font-weight:600; color:var(--gold); line-height:1.25; word-break:break-word}
+  .gstat.wide{grid-column:1/4}
+  .gstat.wide .gval{color:#eaeaf0; font-size:15px}
+  .gstat.wide .gval b{color:var(--gold); font-weight:700}
+  .gen-controls{margin-top:22px; display:flex; flex-direction:column; gap:18px}
+  .slide{display:flex; align-items:center; gap:16px}
+  .slide input[type=range]{flex:1; accent-color:var(--gold)}
+  .slide .num{font-size:16px; font-weight:600; width:44px; text-align:right; font-variant-numeric:tabular-nums; color:var(--gold)}
+  .toggles{display:flex; gap:10px; flex-wrap:wrap}
+  .tg{display:flex; align-items:center; gap:9px; padding:11px 16px; border:1px solid var(--line); border-radius:11px; font-size:12.5px; color:var(--muted); user-select:none}
+  .tg.on{color:var(--ghost); border-color:var(--gold-soft); background:rgba(201,168,106,.05)}
+  .tg .box{width:16px;height:16px;border-radius:5px; border:1.5px solid currentColor; display:grid; place-items:center}
+  .tg.on .box{background:var(--gold); border-color:var(--gold); color:#000}
+  .tg .box svg{width:11px;height:11px; opacity:0} .tg.on .box svg{opacity:1}
+
+  .panel{max-width:620px; background:linear-gradient(180deg,#0c0c10,#08080a); border:1px solid var(--line); border-radius:18px; padding:26px; margin-bottom:18px}
+  .panel h4{color:var(--ghost); font-size:14px; margin-bottom:8px; font-weight:600; text-transform:uppercase; letter-spacing:.04em; display:flex; align-items:center; gap:10px}
+  .panel h4 svg{width:17px;height:17px;color:var(--gold)}
+  .panel p{color:var(--muted); font-size:12.5px; line-height:1.6; margin-bottom:16px}
+  .panel.danger{border-color:#3a1d1d} .panel.danger h4 svg{color:var(--red)}
+  .toast{position:fixed; bottom:26px; left:50%; transform:translateX(-50%) translateY(20px); z-index:300;
+    background:#0e0e12; border:1px solid var(--gold-soft); border-radius:12px; padding:12px 20px; font-size:12.5px; color:var(--ghost);
+    opacity:0; transition:.3s; box-shadow:0 20px 50px -20px rgba(0,0,0,.9); display:flex; align-items:center; gap:10px}
+  .toast.on{opacity:1; transform:translateX(-50%) translateY(0)}
+  .toast svg{width:16px;height:16px;color:var(--gold)}
+</style>
+</head>
+<body>
+
+<!-- LOCK -->
+<div id="lock">
+  <div class="crest" id="crest"></div>
+  <div style="text-align:center">
+    <div class="lock-title tracked-sm">Sovereign Vault</div>
+    <div class="lock-brand tracked">AE<b id="goldG" title="Master key — root of trust">G</b>IS</div>
+  </div>
+  <div class="lock-card">
+    <h2 id="lockHead">Unlock the Vault</h2>
+    <p id="lockDesc">Enter your master key. It is never stored — it derives your encryption key in memory only.</p>
+
+    <div id="paneCode" style="display:none">
+      <input id="totpInput" class="code-input" inputmode="numeric" pattern="[0-9]*" maxlength="6"
+             placeholder="000000" autocomplete="one-time-code" spellcheck="false" />
+      <div class="code-timer"><i id="codeBar" style="width:100%"></i></div>
+      <button class="btn-primary tracked-sm" id="codeBtn">Verify &amp; Unlock</button>
+      <div class="code-hint">Locked out? Tap the golden <b>G</b> above for your master key.</div>
+    </div>
+
+    <div id="paneKey">
+      <div class="field">
+        <input id="mpw" type="password" placeholder="Master key" autocomplete="off" spellcheck="false" />
+        <button class="eye" id="eye1" title="Show"></button>
+      </div>
+      <div class="field" id="confirmField" style="display:none">
+        <input id="mpw2" type="password" placeholder="Confirm master key" autocomplete="off" spellcheck="false" />
+      </div>
+      <button class="btn-primary tracked-sm" id="unlockBtn">Unlock</button>
+      <div class="code-hint" id="backToCode" style="display:none; cursor:pointer">← Back to authenticator code</div>
+    </div>
+
+    <div class="lock-err" id="lockErr"></div>
+  </div>
+  <div class="lock-foot">
+    <b>AES-256-GCM</b> · authenticated encryption · <span id="kdfName">key derivation</span> · in-memory keys.<br/>
+    Lose the master key and the vault is unrecoverable by design — there is no backdoor.
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="topbar">
+    <div class="brand">
+      <div class="mark" id="brandMark"></div>
+      <div class="name tracked-sm">AE<b>G</b>IS</div>
+    </div>
+    <div class="search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+      <input id="search" placeholder="Search accounts, usernames, platforms…" />
+    </div>
+    <div class="top-actions">
+      <div class="pill"><span class="dot-live"></span> SEALED · IN-MEMORY</div>
+      <button class="icon-btn" id="lockNow" title="Lock vault">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="side">
+    <div class="label">Command</div>
+    <button class="nav active" data-view="vault">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+      Identity Matrix <span class="count" id="navCount">0</span>
+    </button>
+    <button class="nav" data-view="generator">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2v4M12 18v4M2 12h4M18 12h4M5 5l2.8 2.8M16.2 16.2 19 19M19 5l-2.8 2.8M7.8 16.2 5 19"/><circle cx="12" cy="12" r="3"/></svg>
+      Password Generator
+    </button>
+    <button class="nav" data-view="backup">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg>
+      Backup &amp; Keys
+    </button>
+    <button class="nav" data-view="security">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 5 6v5c0 4.5 3 7.5 7 9 4-1.5 7-4.5 7-9V6l-7-3Z"/></svg>
+      Security
+    </button>
+    <div class="side-foot">
+      Zero-disk plaintext · keys wiped on lock · no telemetry.<br/>v0.2 — Sovereign build
+    </div>
+  </div>
+
+  <div class="main" id="main"></div>
+</div>
+
+<div id="modal"><div class="modal-card" id="modalCard"></div></div>
+<div class="toast" id="toast"></div>
+
+<script src="vendor/argon2.umd.min.js"></script>
+<script src="vendor/wordlist.js"></script>
+<script>
+const CATALOG = [
+  {key:'discord',   name:'Discord',   color:'#5865F2'},
+  {key:'instagram', name:'Instagram', color:'#E4405F'},
+  {key:'snapchat',  name:'Snapchat',  color:'#F2E33A'},
+  {key:'tiktok',    name:'TikTok',    color:'#3CF0E4'},
+  {key:'x',         name:'X',         color:'#e9e9ee'},
+  {key:'telegram',  name:'Telegram',  color:'#28A8E9'},
+  {key:'whatsapp',  name:'WhatsApp',  color:'#3AE07A'},
+  {key:'reddit',    name:'Reddit',    color:'#FF4D2E'},
+  {key:'youtube',   name:'YouTube',   color:'#FF3B3B'},
+  {key:'twitch',    name:'Twitch',    color:'#9F6BFF'},
+  {key:'facebook',  name:'Facebook',  color:'#3B82F6'},
+  {key:'threads',   name:'Threads',   color:'#e9e9ee'},
+  {key:'pinterest', name:'Pinterest', color:'#F23A50'},
+  {key:'linkedin',  name:'LinkedIn',  color:'#3AA0E0'},
+  {key:'spotify',   name:'Spotify',   color:'#2ED760'},
+  {key:'github',    name:'GitHub',    color:'#e6edf3'},
+  {key:'google',    name:'Google',    color:'#5B8DEF'},
+  {key:'steam',     name:'Steam',     color:'#9BC0DE'},
+  {key:'epicgames', name:'Epic Games',color:'#dcdce2'},
+  {key:'xbox',      name:'Xbox',      color:'#43B04A'},
+  {key:'roblox',    name:'Roblox',    color:'#E6534B'},
+  {key:'ubisoft',   name:'Ubisoft',   color:'#cfd3da'},
+  {key:'minecraft', name:'Minecraft', color:'#63B24B'},
+  {key:'mastodon',  name:'Mastodon',  color:'#7A7CFF'},
+  {key:'signal',    name:'Signal',    color:'#4A86F5'},
+  {key:'proton',    name:'ProtonMail',color:'#9B7BE0'},
+];
+const STATUSES = [
+  {key:'Active',  color:'var(--green)'},
+  {key:'Warm',    color:'var(--amber)'},
+  {key:'Standby', color:'var(--blue)'},
+  {key:'Banned',  color:'var(--red)'},
+  {key:'Burned',  color:'var(--gray)'},
+];
+const STATUS_HEX = {Active:'#4ec98b',Warm:'#d8a94e',Standby:'#4ea6d8',Banned:'#d85e5e',Burned:'#6a6a74'};
+const statusColor = s => (STATUSES.find(x=>x.key===s)||STATUSES[2]).color;
+const statusHex = s => STATUS_HEX[s]||'#4ea6d8';
+
+function trophySize(name){
+  const len = (name||'').length;
+  if(len<=6)  return 30;
+  if(len<=9)  return 26;
+  if(len<=13) return 22;
+  if(len<=18) return 18;
+  return 15;
+}
+const ICN = {
+  copy:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>',
+  check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg>',
+  eye:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="2.6"/></svg>',
+  edit:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>',
+  trash:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2M19 6l-1 14a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1L5 6"/></svg>',
+  plus:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>',
+  refresh:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg>',
+  key:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="8" cy="15" r="4"/><path d="m10.8 12.2 8-8M18 6l2 2M15 9l2 2"/></svg>',
+  shield:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3 5 6v5c0 4.5 3 7.5 7 9 4-1.5 7-4.5 7-9V6l-7-3Z"/></svg>',
+  down:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3v12M7 10l5 5 5-5M4 21h16"/></svg>',
+  up:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 21V9M7 14l5-5 5 5M4 3h16"/></svg>',
+  crown:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M2.6 8.4 6.9 12l4-6.6a1.3 1.3 0 0 1 2.2 0l4 6.6 4.3-3.6c.66-.55 1.6.02 1.46.87L21.4 17.4H2.6L1.14 9.27c-.14-.85.8-1.42 1.46-.87Z"/><rect x="4.5" y="18.6" width="15" height="2.3" rx=".7"/></svg>',
+  phone:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="6" y="2" width="12" height="20" rx="2.6"/><path d="M10.6 18.2h2.8" stroke-linecap="round"/></svg>',
+};
+
+/* ============================================================ CRYPTO ============================================================ */
+const ARGON = { memorySize:65536, iterations:3, parallelism:1 };
+const PBKDF2_ITERS = 600000;
+const STORE_KEY = 'aegis.vault.v1';
+const DECOY_KEY = 'aegis.decoy.v1';
+const enc = new TextEncoder(), dec = new TextDecoder();
+const b64 = buf => btoa(String.fromCharCode(...new Uint8Array(buf)));
+const unb64 = s => Uint8Array.from(atob(s), c=>c.charCodeAt(0));
+const hasArgon = () => typeof window.hashwasm !== 'undefined' && !!window.hashwasm.argon2id;
+/* The symbol existing isn't proof it runs — a host that blocks WebAssembly (CSP without
+   'wasm-unsafe-eval') only fails when you actually call it. Probe once, cheaply, so we
+   fall back to PBKDF2 up front instead of dying mid-unlock. */
+let ARGON_OK = null;
+async function argonWorks(){
+  if(ARGON_OK !== null) return ARGON_OK;
+  if(!hasArgon()){ ARGON_OK = false; return false; }
+  try{
+    await window.hashwasm.argon2id({ password:'probe', salt:new Uint8Array(16),
+      parallelism:1, iterations:1, memorySize:64, hashLength:32, outputType:'binary' });
+    ARGON_OK = true;
+  }catch(e){ ARGON_OK = false; }
+  return ARGON_OK;
+}
+
+async function deriveKeyArgon(password, salt, p){
+  const raw = await window.hashwasm.argon2id({ password, salt,
+    parallelism:p.parallelism, iterations:p.iterations, memorySize:p.memorySize, hashLength:32, outputType:'binary' });
+  return crypto.subtle.importKey('raw', raw, 'AES-GCM', false, ['encrypt','decrypt']);
+}
+async function deriveKeyPBKDF2(password, salt, iterations){
+  const base = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey({name:'PBKDF2', salt, iterations, hash:'SHA-256'}, base, {name:'AES-GCM', length:256}, false, ['encrypt','decrypt']);
+}
+async function encryptData(key, obj){
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = await crypto.subtle.encrypt({name:'AES-GCM', iv}, key, enc.encode(JSON.stringify(obj)));
+  return {iv:b64(iv), ct:b64(ct)};
+}
+async function decryptData(key, ivB64, ctB64){
+  const pt = await crypto.subtle.decrypt({name:'AES-GCM', iv:unb64(ivB64)}, key, unb64(ctB64));
+  return JSON.parse(dec.decode(pt));
+}
+
+/* ============================================================ TOTP (RFC 6238) ============================================================ */
+const B32A = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+function base32Encode(bytes){
+  let bits=0, val=0, out='';
+  for(const b of bytes){
+    val = ((val<<8)|b) & 0xFFFFF; bits += 8;
+    while(bits>=5){ out += B32A[(val>>>(bits-5)) & 31]; bits -= 5; }
+  }
+  if(bits>0) out += B32A[(val<<(5-bits)) & 31];
+  return out;
+}
+function base32Decode(str){
+  let bits=0, val=0; const out=[];
+  for(const c of String(str).toUpperCase()){
+    const i = B32A.indexOf(c); if(i<0) continue;
+    val = ((val<<5)|i) & 0xFFFFF; bits += 5;
+    if(bits>=8){ out.push((val>>>(bits-8)) & 255); bits -= 8; }
+  }
+  return new Uint8Array(out);
+}
+const TOTP_PERIOD = 30;
+const totpStep = (ms=Date.now()) => Math.floor(ms/1000/TOTP_PERIOD);
+const totpRemaining = (ms=Date.now()) => TOTP_PERIOD - Math.floor(ms/1000)%TOTP_PERIOD;
+async function totpAt(secretBytes, counter){
+  const key = await crypto.subtle.importKey('raw', secretBytes, {name:'HMAC', hash:'SHA-1'}, false, ['sign']);
+  const buf = new ArrayBuffer(8), dv = new DataView(buf);
+  dv.setUint32(0, Math.floor(counter/4294967296));
+  dv.setUint32(4, counter>>>0);
+  const sig = new Uint8Array(await crypto.subtle.sign('HMAC', key, buf));
+  const off = sig[sig.length-1] & 0x0f;
+  const bin = ((sig[off]&0x7f)<<24) | (sig[off+1]<<16) | (sig[off+2]<<8) | sig[off+3];
+  return String(bin % 1000000).padStart(6,'0');
+}
+/* accepts the neighbouring steps too, so a slightly-off device clock still works */
+async function totpVerify(secretBytes, code, window=1){
+  const c = String(code||'').replace(/\D/g,'');
+  if(c.length !== 6) return false;
+  const now = totpStep();
+  for(let d=-window; d<=window; d++){ if(await totpAt(secretBytes, now+d) === c) return true; }
+  return false;
+}
+
+/* ============================================================ QR ENCODER ============================================================
+   Byte mode, ECC level L, versions 1–6. Blocks are equal-sized at every one of these
+   versions (v6 is the first with 2), so interleaving stays simple and no version-info
+   blocks are needed (those start at v7). Offline, no deps. */
+const QR_CAP    = [19,34,55,80,108,136];   // total data codewords
+const QR_ECCN   = [7,10,15,20,26,18];      // ecc codewords PER BLOCK
+const QR_BLOCKS = [1,1,1,1,1,2];
+const QR_ALIGN  = [[],[6,18],[6,22],[6,26],[6,30],[6,34]];
+const GF_EXP = new Uint8Array(512), GF_LOG = new Uint8Array(256);
+(function(){ let x=1; for(let i=0;i<255;i++){ GF_EXP[i]=x; GF_LOG[x]=i; x<<=1; if(x&0x100) x^=0x11D; }
+             for(let i=255;i<512;i++) GF_EXP[i]=GF_EXP[i-255]; })();
+const gfMul = (a,b) => (a===0||b===0) ? 0 : GF_EXP[GF_LOG[a]+GF_LOG[b]];
+const getBit = (x,i) => ((x>>>i) & 1) !== 0;
+
+function rsDivisor(degree){
+  const res = new Uint8Array(degree); res[degree-1] = 1;
+  let root = 1;
+  for(let i=0;i<degree;i++){
+    for(let j=0;j<degree;j++){
+      res[j] = gfMul(res[j], root);
+      if(j+1 < degree) res[j] ^= res[j+1];
+    }
+    root = gfMul(root, 0x02);
+  }
+  return res;
+}
+function rsRemainder(data, divisor){
+  const res = new Uint8Array(divisor.length);
+  for(const b of data){
+    const factor = b ^ res[0];
+    res.copyWithin(0,1); res[res.length-1] = 0;
+    for(let i=0;i<divisor.length;i++) res[i] ^= gfMul(divisor[i], factor);
+  }
+  return res;
+}
+function qrPenalty(m, size){
+  let score = 0;
+  for(let i=0;i<size;i++){
+    let rc=m[i][0], rl=1, cc=m[0][i], cl=1;
+    for(let j=1;j<size;j++){
+      const rv=m[i][j]; if(rv===rc) rl++; else { if(rl>=5) score += 3+(rl-5); rc=rv; rl=1; }
+      const cv=m[j][i]; if(cv===cc) cl++; else { if(cl>=5) score += 3+(cl-5); cc=cv; cl=1; }
+    }
+    if(rl>=5) score += 3+(rl-5);
+    if(cl>=5) score += 3+(cl-5);
+  }
+  for(let y=0;y<size-1;y++) for(let x=0;x<size-1;x++){
+    const v=m[y][x];
+    if(v===m[y][x+1] && v===m[y+1][x] && v===m[y+1][x+1]) score += 3;
+  }
+  const P1=[1,0,1,1,1,0,1,0,0,0,0], P2=[0,0,0,0,1,0,1,1,1,0,1];
+  const hits = get => { let a=true,b=true;
+    for(let k=0;k<11;k++){ const v=get(k); if(v!==P1[k]) a=false; if(v!==P2[k]) b=false; }
+    return (a?1:0)+(b?1:0); };
+  for(let i=0;i<size;i++) for(let j=0;j+11<=size;j++){
+    score += 40*hits(k=>m[i][j+k]);
+    score += 40*hits(k=>m[j+k][i]);
+  }
+  let dark=0;
+  for(let y=0;y<size;y++) for(let x=0;x<size;x++) dark += m[y][x];
+  score += 10*Math.floor(Math.abs(dark*100/(size*size) - 50)/5);
+  return score;
+}
+function qrEncode(text){
+  const bytes = enc.encode(text);
+  let ver = 0;
+  for(let v=1; v<=QR_CAP.length; v++){ if(12 + 8*bytes.length <= 8*QR_CAP[v-1]){ ver = v; break; } }
+  if(!ver) throw new Error('QR payload too long');
+
+  const capBits = QR_CAP[ver-1]*8;
+  const bits = [];
+  const push = (val,n) => { for(let i=n-1;i>=0;i--) bits.push((val>>>i)&1); };
+  push(4,4); push(bytes.length,8);
+  for(const b of bytes) push(b,8);
+  for(let i=0;i<4 && bits.length<capBits;i++) bits.push(0);
+  while(bits.length % 8) bits.push(0);
+  const data = new Uint8Array(QR_CAP[ver-1]);
+  for(let i=0;i<bits.length;i++) if(bits[i]) data[i>>3] |= 0x80 >>> (i&7);
+  for(let i=bits.length/8, pad=0xEC; i<data.length; i++, pad ^= 0xEC^0x11) data[i] = pad;
+
+  /* split into equal blocks, ECC each, then interleave data then ECC */
+  const nb = QR_BLOCKS[ver-1], eccPer = QR_ECCN[ver-1], perBlock = QR_CAP[ver-1]/nb;
+  const divisor = rsDivisor(eccPer);
+  const dBlocks = [], eBlocks = [];
+  for(let i=0;i<nb;i++){
+    const blk = data.slice(i*perBlock, (i+1)*perBlock);
+    dBlocks.push(blk); eBlocks.push(rsRemainder(blk, divisor));
+  }
+  const all = new Uint8Array(QR_CAP[ver-1] + eccPer*nb);
+  let ai = 0;
+  for(let i=0;i<perBlock;i++) for(let b=0;b<nb;b++) all[ai++] = dBlocks[b][i];
+  for(let i=0;i<eccPer;i++)   for(let b=0;b<nb;b++) all[ai++] = eBlocks[b][i];
+
+  const size = ver*4 + 17;
+  const mod  = Array.from({length:size}, () => new Uint8Array(size));
+  const isFn = Array.from({length:size}, () => new Uint8Array(size));
+  const setFn = (x,y,dark) => { if(x<0||y<0||x>=size||y>=size) return; mod[y][x] = dark?1:0; isFn[y][x] = 1; };
+
+  for(let i=0;i<size;i++){ setFn(6,i, i%2===0); setFn(i,6, i%2===0); }
+  const finder = (cx,cy) => { for(let dy=-4;dy<=4;dy++) for(let dx=-4;dx<=4;dx++){
+    const d = Math.max(Math.abs(dx),Math.abs(dy)); setFn(cx+dx, cy+dy, d!==2 && d!==4); } };
+  finder(3,3); finder(size-4,3); finder(3,size-4);
+  const ali = QR_ALIGN[ver-1];
+  for(const ay of ali) for(const ax of ali){
+    if((ax===6&&ay===6) || (ax===6&&ay===size-7) || (ax===size-7&&ay===6)) continue;
+    for(let dy=-2;dy<=2;dy++) for(let dx=-2;dx<=2;dx++)
+      setFn(ax+dx, ay+dy, Math.max(Math.abs(dx),Math.abs(dy)) !== 1);
+  }
+  const drawFormat = mask => {
+    const dataBits = (1<<3) | mask;              // ECC level L = 0b01
+    let rem = dataBits;
+    for(let i=0;i<10;i++) rem = (rem<<1) ^ ((rem>>>9)*0x537);
+    const f = ((dataBits<<10) | rem) ^ 0x5412;
+    for(let i=0;i<=5;i++) setFn(8,i,getBit(f,i));
+    setFn(8,7,getBit(f,6)); setFn(8,8,getBit(f,7)); setFn(7,8,getBit(f,8));
+    for(let i=9;i<15;i++) setFn(14-i,8,getBit(f,i));
+    for(let i=0;i<8;i++)  setFn(size-1-i,8,getBit(f,i));
+    for(let i=8;i<15;i++) setFn(8,size-15+i,getBit(f,i));
+    setFn(8,size-8,true);
+  };
+  drawFormat(0);                                  // reserve the format area
+
+  let bi = 0;
+  for(let right=size-1; right>=1; right-=2){
+    if(right===6) right = 5;
+    for(let vert=0; vert<size; vert++){
+      for(let j=0;j<2;j++){
+        const x = right - j;
+        const y = (((right+1) & 2) === 0) ? size-1-vert : vert;
+        if(!isFn[y][x] && bi < all.length*8){
+          mod[y][x] = getBit(all[bi>>>3], 7-(bi&7)) ? 1 : 0;
+          bi++;
+        }
+      }
+    }
+  }
+  const applyMask = mask => {
+    for(let y=0;y<size;y++) for(let x=0;x<size;x++){
+      if(isFn[y][x]) continue;
+      let inv = false;
+      switch(mask){
+        case 0: inv = (x+y)%2===0; break;
+        case 1: inv = y%2===0; break;
+        case 2: inv = x%3===0; break;
+        case 3: inv = (x+y)%3===0; break;
+        case 4: inv = (Math.floor(x/3)+Math.floor(y/2))%2===0; break;
+        case 5: inv = (x*y)%2 + (x*y)%3 === 0; break;
+        case 6: inv = ((x*y)%2 + (x*y)%3)%2===0; break;
+        case 7: inv = ((x+y)%2 + (x*y)%3)%2===0; break;
+      }
+      if(inv) mod[y][x] ^= 1;
+    }
+  };
+  let best = 0, bestScore = Infinity;
+  for(let mask=0; mask<8; mask++){
+    applyMask(mask); drawFormat(mask);
+    const s = qrPenalty(mod, size);
+    if(s < bestScore){ bestScore = s; best = mask; }
+    applyMask(mask);                              // XOR is self-inverse — revert
+  }
+  applyMask(best); drawFormat(best);
+  return {size, modules:mod};
+}
+function qrSvg(text){
+  const {size, modules} = qrEncode(text);
+  const q = 4, dim = size + q*2;
+  let path = '';
+  for(let y=0;y<size;y++) for(let x=0;x<size;x++)
+    if(modules[y][x]) path += `M${x+q} ${y+q}h1v1h-1z`;
+  return `<svg viewBox="0 0 ${dim} ${dim}" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">`
+       + `<rect width="${dim}" height="${dim}" fill="#ffffff"/><path d="${path}" fill="#000000"/></svg>`;
+}
+
+/* ============================================================ SENTINEL (authenticator unlock) ============================================================
+   A 6-digit code carries ~20 bits and rotates — it cannot derive an AES key. So enrolling
+   stores the master key sealed under a key derived from the TOTP secret, and a valid code
+   releases it. Convenience layer; the master key stays the root of trust. */
+const SENTINEL_KEY = 'aegis.sentinel.v1';
+function sentinelRec(){ try{ return JSON.parse(localStorage.getItem(SENTINEL_KEY)); }catch(e){ return null; } }
+function sentinelOn(){ const r = sentinelRec(); return !!(r && r.secret && r.ct); }
+function sentinelClear(){ localStorage.removeItem(SENTINEL_KEY); }
+async function sentinelWrapKey(secretB32, salt, meta){
+  return meta.kind==='argon2id' ? deriveKeyArgon(secretB32, salt, meta.argon)
+                                : deriveKeyPBKDF2(secretB32, salt, meta.iterations);
+}
+async function sentinelEnroll(masterPw, secretB32){
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const meta = (await argonWorks()) ? {kind:'argon2id', argon:{...ARGON}} : {kind:'pbkdf2', iterations:PBKDF2_ITERS};
+  const wk = await sentinelWrapKey(secretB32, salt, meta);
+  const {iv, ct} = await encryptData(wk, {pw:masterPw});
+  const rec = {v:1, secret:secretB32, salt:b64(salt), iv, ct, added:new Date().toISOString().slice(0,10)};
+  if(meta.kind==='argon2id'){ rec.kdf='argon2id'; rec.argon=meta.argon; }
+  else { rec.kdf='PBKDF2-SHA256'; rec.iterations=meta.iterations; }
+  localStorage.setItem(SENTINEL_KEY, JSON.stringify(rec));
+}
+async function sentinelRelease(code){
+  const rec = sentinelRec();
+  if(!rec) throw {soft:'No authenticator enrolled on this device.'};
+  if(!(await totpVerify(base32Decode(rec.secret), code)))
+    throw {soft:'Code rejected — check the app, and that this device’s clock is right.'};
+  const meta = rec.kdf==='argon2id' ? {kind:'argon2id', argon:rec.argon}
+                                    : {kind:'pbkdf2', iterations:rec.iterations||PBKDF2_ITERS};
+  const wk = await sentinelWrapKey(rec.secret, unb64(rec.salt), meta);
+  const obj = await decryptData(wk, rec.iv, rec.ct);
+  return obj.pw;
+}
+async function verifyMasterPassword(pw){
+  const raw = localStorage.getItem(STORE_KEY);
+  if(!raw) return false;
+  try{
+    const rec = JSON.parse(raw), salt = unb64(rec.salt);
+    const k = rec.kdf==='argon2id' ? await deriveKeyArgon(pw, salt, rec.argon)
+                                   : await deriveKeyPBKDF2(pw, salt, rec.iterations||PBKDF2_ITERS);
+    await decryptData(k, rec.iv, rec.ct);
+    return true;
+  }catch(e){ return false; }
+}
+
+/* ============================================================ STATE ============================================================ */
+let VAULT = null, KEY = null, SALT = null, KDFMETA = null, DECOY_MODE = false;
+function activeStoreKey(){ return DECOY_MODE ? DECOY_KEY : STORE_KEY; }
+let VIEW = 'vault', SELECTED = null, AUTOLOCK = null;
+const uid = () => Math.random().toString(36).slice(2,10);
+
+function seed(){
+  const mk = (k) => { const c=CATALOG.find(x=>x.key===k); return {id:uid(), key:c.key, name:c.name, color:c.color, accounts:[]}; };
+  return { platforms:['discord','instagram','snapchat','tiktok','steam','epicgames','xbox','roblox'].map(mk) };
+}
+async function persist(){
+  const {iv, ct} = await encryptData(KEY, VAULT);
+  const rec = { v:1, salt:b64(SALT), iv, ct };
+  if(KDFMETA.kind==='argon2id'){ rec.kdf='argon2id'; rec.argon=KDFMETA.argon; }
+  else { rec.kdf='PBKDF2-SHA256'; rec.iterations=KDFMETA.iterations; }
+  localStorage.setItem(activeStoreKey(), JSON.stringify(rec));
+}
+function armAutoLock(){ clearTimeout(AUTOLOCK); AUTOLOCK = setTimeout(lock, 5*60*1000); }
+
+/* ============================================================ LOCK / UNLOCK ============================================================ */
+document.getElementById('crest').innerHTML = ICN.shield.replace('stroke-width="1.9"','stroke-width="1.6"').replace('currentColor','#c9a86a');
+document.getElementById('brandMark').innerHTML = ICN.shield.replace('currentColor','#c9a86a');
+argonWorks().then(ok => {
+  document.getElementById('kdfName').textContent = ok ? 'Argon2id · 64 MiB memory-hard' : 'PBKDF2-SHA256 · 600k iters';
+});
+
+const lockEl = document.getElementById('lock');
+const appEl = document.getElementById('app');
+const mpw = document.getElementById('mpw');
+const mpw2 = document.getElementById('mpw2');
+const lockErr = document.getElementById('lockErr');
+let isFirstRun = !localStorage.getItem(STORE_KEY);
+
+if(isFirstRun){
+  document.getElementById('lockHead').textContent = 'Forge your Master Key';
+  document.getElementById('lockDesc').textContent = 'This key encrypts everything. It is never saved anywhere — choose something strong and unforgettable. There is no recovery.';
+  document.getElementById('confirmField').style.display = 'block';
+  document.getElementById('unlockBtn').textContent = 'Seal the Vault';
+}
+document.getElementById('eye1').innerHTML = ICN.eye;
+document.getElementById('eye1').onclick = () => { mpw.type = mpw.type==='password'?'text':'password'; };
+
+const totpInput = document.getElementById('totpInput');
+const paneCode = document.getElementById('paneCode');
+const paneKey  = document.getElementById('paneKey');
+const codeBar  = document.getElementById('codeBar');
+let LOCKMODE = 'key', CODE_TIMER = null;
+
+function setLockMode(m){
+  LOCKMODE = m;
+  lockErr.textContent = '';
+  paneCode.style.display = m==='code' ? 'block' : 'none';
+  paneKey.style.display  = m==='key'  ? 'block' : 'none';
+  document.getElementById('backToCode').style.display = (m==='key' && sentinelOn() && !isFirstRun) ? 'block' : 'none';
+  const head = document.getElementById('lockHead'), desc = document.getElementById('lockDesc');
+  if(m==='code'){
+    head.textContent = 'Sentinel Code';
+    desc.textContent = 'Enter the 6-digit code from your authenticator app.';
+    totpInput.value = ''; setTimeout(()=>totpInput.focus(), 30);
+  } else if(isFirstRun){
+    head.textContent = 'Forge your Master Key';
+    desc.textContent = 'This key encrypts everything. It is never saved anywhere — choose something strong and unforgettable. There is no recovery.';
+    setTimeout(()=>mpw.focus(), 30);
+  } else if(sentinelOn()){
+    head.textContent = 'Master Key';
+    desc.textContent = 'The root of trust. Always works, even if you lose the authenticator.';
+    setTimeout(()=>mpw.focus(), 30);
+  } else {
+    head.textContent = 'Unlock the Vault';
+    desc.textContent = 'Enter your master key. It is never stored — it derives your encryption key in memory only.';
+    setTimeout(()=>mpw.focus(), 30);
+  }
+}
+function tickCodeBar(){
+  const left = totpRemaining();
+  codeBar.style.width = (left/TOTP_PERIOD*100) + '%';
+}
+function startCodeTimer(){ clearInterval(CODE_TIMER); tickCodeBar(); CODE_TIMER = setInterval(tickCodeBar, 1000); }
+function stopCodeTimer(){ clearInterval(CODE_TIMER); CODE_TIMER = null; }
+
+async function enterVault(){
+  lockEl.style.display='none'; appEl.classList.add('on'); stopCodeTimer();
+  mpw.value=''; mpw2.value=''; totpInput.value='';
+  VIEW='vault'; SELECTED=null; syncNav(); render(); armAutoLock();
+}
+/* derives the key from `pw` and opens the vault; throws {soft} on failure */
+async function decryptRecord(rec, pw){
+  const salt = unb64(rec.salt);
+  let kdfmeta, key;
+  if(rec.kdf==='argon2id'){
+    if(!(await argonWorks())) throw {soft:'Argon2 unavailable here — this vault needs it. Open it where WebAssembly is allowed.'};
+    kdfmeta={kind:'argon2id', argon:rec.argon}; key = await deriveKeyArgon(pw, salt, rec.argon);
+  } else {
+    kdfmeta={kind:'pbkdf2', iterations:rec.iterations||PBKDF2_ITERS};
+    key = await deriveKeyPBKDF2(pw, salt, rec.iterations||PBKDF2_ITERS);
+  }
+  const vault = await decryptData(key, rec.iv, rec.ct);
+  return {vault, key, salt, kdfmeta};
+}
+async function openWithPassword(pw, creating){
+  if(creating){
+    SALT = crypto.getRandomValues(new Uint8Array(16));
+    if(await argonWorks()){ KDFMETA={kind:'argon2id', argon:{...ARGON}}; KEY = await deriveKeyArgon(pw, SALT, ARGON); }
+    else { KDFMETA={kind:'pbkdf2', iterations:PBKDF2_ITERS}; KEY = await deriveKeyPBKDF2(pw, SALT, PBKDF2_ITERS); }
+    VAULT = seed(); DECOY_MODE = false; await persist(); isFirstRun = false;
+    return;
+  }
+  const rec = JSON.parse(localStorage.getItem(STORE_KEY));
+  try{
+    const opened = await decryptRecord(rec, pw);
+    VAULT = opened.vault; KEY = opened.key; SALT = opened.salt; KDFMETA = opened.kdfmeta; DECOY_MODE = false;
+    return;
+  }catch(e){
+    if(e && e.soft) throw e;
+    const decoyRaw = localStorage.getItem(DECOY_KEY);
+    if(decoyRaw){
+      try{
+        const drec = JSON.parse(decoyRaw);
+        const opened = await decryptRecord(drec, pw);
+        VAULT = opened.vault; KEY = opened.key; SALT = opened.salt; KDFMETA = opened.kdfmeta; DECOY_MODE = true;
+        return;
+      }catch(e2){ /* fall through to generic rejection */ }
+    }
+    KEY=null; SALT=null; KDFMETA=null;
+    throw {soft:'Vault sealed — credentials rejected.'};
+  }
+}
+let UNLOCK_BUSY = false;
+async function withBusy(btn, label, fn){
+  if(UNLOCK_BUSY) return;
+  UNLOCK_BUSY = true;
+  const orig = btn.textContent;
+  btn.disabled = true; btn.textContent = label; btn.style.opacity = '.7';
+  await new Promise(r=>setTimeout(r, 20));
+  try{ await fn(); }
+  catch(err){ lockErr.textContent = (err && err.soft) ? err.soft : 'Unlock failed.'; }
+  finally{ UNLOCK_BUSY=false; btn.disabled=false; btn.textContent=orig; btn.style.opacity=''; }
+}
+async function unlock(){
+  lockErr.textContent = '';
+  const pw = mpw.value;
+  if(pw.length < 6){ lockErr.textContent = 'Master key must be at least 6 characters.'; return; }
+  if(isFirstRun && pw !== mpw2.value){ lockErr.textContent = 'Keys do not match.'; return; }
+  await withBusy(document.getElementById('unlockBtn'), 'Deriving key…', async ()=>{
+    await openWithPassword(pw, isFirstRun);
+    await enterVault();
+  });
+  if(!KEY) mpw.value = '';
+}
+async function unlockWithCode(){
+  lockErr.textContent = '';
+  const code = totpInput.value.replace(/\D/g,'');
+  if(code.length !== 6){ lockErr.textContent = 'Enter all six digits.'; return; }
+  await withBusy(document.getElementById('codeBtn'), 'Verifying…', async ()=>{
+    const pw = await sentinelRelease(code);
+    await openWithPassword(pw, false);
+    await enterVault();
+  });
+  if(!KEY) totpInput.value = '';
+}
+function lock(){
+  KEY=null; SALT=null; VAULT=null; DECOY_MODE=false; clearTimeout(AUTOLOCK);
+  appEl.classList.remove('on'); lockEl.style.display='flex';
+  document.getElementById('confirmField').style.display = isFirstRun ? 'block' : 'none';
+  document.getElementById('unlockBtn').textContent = isFirstRun ? 'Seal the Vault' : 'Unlock';
+  if(sentinelOn() && !isFirstRun){ setLockMode('code'); startCodeTimer(); }
+  else { setLockMode('key'); stopCodeTimer(); }
+}
+document.getElementById('unlockBtn').onclick = unlock;
+document.getElementById('codeBtn').onclick = unlockWithCode;
+mpw.addEventListener('keydown', e=>{ if(e.key==='Enter'){ isFirstRun && mpw2.value===''? mpw2.focus() : unlock(); }});
+mpw2.addEventListener('keydown', e=>{ if(e.key==='Enter') unlock(); });
+totpInput.addEventListener('input', ()=>{
+  const v = totpInput.value.replace(/\D/g,'').slice(0,6);
+  if(v !== totpInput.value) totpInput.value = v;
+  if(v.length === 6) unlockWithCode();
+});
+totpInput.addEventListener('keydown', e=>{ if(e.key==='Enter') unlockWithCode(); });
+/* the golden G is the way back to the master key */
+document.getElementById('goldG').onclick = ()=>{
+  if(isFirstRun) return;
+  if(LOCKMODE === 'code') setLockMode('key');
+  else if(sentinelOn()) setLockMode('code');
+};
+document.getElementById('backToCode').onclick = ()=> setLockMode('code');
+document.getElementById('lockNow').onclick = lock;
+if(sentinelOn() && !isFirstRun){ setLockMode('code'); startCodeTimer(); } else { setLockMode('key'); }
+['click','keydown','mousemove'].forEach(ev=>document.addEventListener(ev, ()=>{ if(KEY) armAutoLock(); }));
+
+/* ============================================================ RENDER ============================================================ */
+const main = document.getElementById('main');
+function syncNav(){ document.querySelectorAll('.nav').forEach(n=>n.classList.toggle('active', n.dataset.view===VIEW)); }
+function setView(v){ VIEW=v; SELECTED=null; syncNav(); render(); }
+document.querySelectorAll('.nav[data-view]').forEach(n=> n.onclick = ()=> setView(n.dataset.view));
+function totalAccounts(){ return VAULT.platforms.reduce((a,p)=>a+p.accounts.length,0); }
+
+function render(){
+  if(!VAULT) return;
+  document.getElementById('navCount').textContent = VAULT.platforms.length;
+  if(VIEW==='vault') return renderVault();
+  if(VIEW==='platform') return renderPlatform();
+  if(VIEW==='generator') return renderGenerator();
+  if(VIEW==='backup') return renderBackup();
+  if(VIEW==='security') return renderSecurity();
+  return setView('vault');
+}
+
+function renderVault(){
+  const q = (document.getElementById('search').value||'').toLowerCase();
+  let plats = VAULT.platforms;
+  if(q){
+    plats = plats.filter(p =>
+      p.name.toLowerCase().includes(q) ||
+      p.accounts.some(a => (a.alias+a.username+a.email+(a.notes||'')).toLowerCase().includes(q)));
+  }
+  main.innerHTML = `
+    <div class="view-head">
+      <div>
+        <h1 class="tracked-sm">Identity Matrix</h1>
+        <div class="sub">${VAULT.platforms.length} platforms · ${totalAccounts()} accounts under seal</div>
+      </div>
+      <button class="btn-ghost btn-gold" id="addPlat">${ICN.plus} Add Platform</button>
+    </div>
+    <div class="grid" id="grid"></div>`;
+  const grid = document.getElementById('grid');
+  plats.forEach(p=>{
+    const el = document.createElement('div');
+    el.className='tile'; el.style.setProperty('--tile-color', p.color);
+    const n = p.accounts.length;
+    let trophyName, sub, pips='';
+    if(n){
+      const primary = p.accounts[0];
+      const pname = primary.username || primary.alias || 'unnamed';
+      trophyName = `<div class="trophy-name" style="font-size:${trophySize(pname)}px" title="${escAttr(pname)}">${esc(pname)}</div>`;
+      if(n>1){
+        const rest = p.accounts.slice(1,3).map(a=>esc(a.username||a.alias||'unnamed')).join(' · ');
+        sub = `<div class="trophy-sub">${rest}${n>3?` +${n-3}`:''}</div>`;
+      } else {
+        sub = `<div class="trophy-sub">sole holder</div>`;
+      }
+      pips = `<div class="tile-pips">${p.accounts.slice(0,3).map(a=>`<span class="u-dot" style="background:${statusHex(a.status)};color:${statusHex(a.status)}"></span>`).join('')}</div>`;
+    } else {
+      trophyName = `<div class="trophy-name">Unclaimed</div>`;
+      sub = `<div class="trophy-sub">tap to enshrine a handle</div>`;
+    }
+    el.innerHTML = `
+      <div class="tile-spot"></div>
+      <div class="tile-glow"></div>
+      <div class="tile-body">
+        <div class="tile-eyebrow">
+          <div class="tile-plat">${esc(p.name)}</div>
+          ${pips}
+        </div>
+        <div class="trophy ${n?'':'trophy-empty'}">
+          <div class="trophy-crown">${ICN.crown}</div>
+          ${trophyName}
+          <div class="trophy-plinth"></div>
+          ${sub}
+        </div>
+        <div class="tile-bottom">
+          <div class="tile-count"><b>${n}</b><span>${n===1?'Profile':'Profiles'}</span></div>
+          <div class="tile-crest tracked-sm">Aegis</div>
+        </div>
+      </div>`;
+    el.onclick = ()=>{ SELECTED=p.id; VIEW='platform'; render(); };
+    grid.appendChild(el);
+  });
+  const add = document.createElement('div');
+  add.className='tile add';
+  add.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center"><div class="plus">${ICN.plus}</div><span class="tracked-sm">Add Platform</span></div>`;
+  add.onclick = openPlatformPicker;
+  grid.appendChild(add);
+  document.getElementById('addPlat').onclick = openPlatformPicker;
+}
+
+function renderPlatform(){
+  const p = VAULT.platforms.find(x=>x.id===SELECTED);
+  if(!p) return setView('vault');
+  main.innerHTML = `
+    <button class="back" id="back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg> Matrix</button>
+    <div class="view-head">
+      <div class="pf-head">
+        <div>
+          <h1 class="tracked-sm">${esc(p.name)}</h1>
+          <div class="sub">${p.accounts.length} profile${p.accounts.length!==1?'s':''} · infinite capacity</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px">
+        <button class="btn-ghost" id="delPlat">${ICN.trash} Remove</button>
+        <button class="btn-ghost btn-gold" id="addAcct">${ICN.plus} Add Account</button>
+      </div>
+    </div>
+    <div class="acct" id="acctList"></div>`;
+  document.getElementById('back').onclick = ()=> setView('vault');
+  document.getElementById('addAcct').onclick = ()=> openAccountModal(p, null);
+  document.getElementById('delPlat').onclick = ()=>{
+    if(confirm(`Remove ${p.name} and its ${p.accounts.length} account(s)? This cannot be undone.`)){
+      VAULT.platforms = VAULT.platforms.filter(x=>x.id!==p.id); persist(); setView('vault');
+    }
+  };
+  const list = document.getElementById('acctList');
+  if(!p.accounts.length){
+    list.innerHTML = `<div class="empty">${ICN.key}<p>No profiles under this platform yet.</p><button class="btn-ghost btn-gold" id="addFirst">${ICN.plus} Add the first account</button></div>`;
+    document.getElementById('addFirst').onclick = ()=> openAccountModal(p, null);
+    return;
+  }
+  p.accounts.forEach(a=> list.appendChild(accountCard(p, a)) );
+}
+
+function daysSince(dateStr){
+  const d = new Date(dateStr); if(isNaN(d)) return null;
+  return Math.floor((Date.now()-d.getTime())/86400000);
+}
+function rotationBadge(createdStr){
+  const days = daysSince(createdStr);
+  if(days==null) return '';
+  return days>90
+    ? `<span class="status-tag" style="color:var(--amber);border-color:var(--amber)">Rotation recommended · ${days}d old</span>`
+    : `<span class="status-tag" style="color:var(--muted-2);border-color:var(--line)">${days}d old</span>`;
+}
+function accountCard(p, a){
+  const el = document.createElement('div'); el.className='acard';
+  const kind = a.kind || 'login';
+  let rows;
+  if(kind==='api_key'){
+    rows = [ {k:'Key', v:a.password, secret:true}, {k:'Scopes', v:a.scopes} ];
+  } else if(kind==='ssh'){
+    rows = [ {k:'Host', v:a.host}, {k:'User', v:a.username}, {k:'Key type', v:a.keyType}, {k:'Private key', v:a.password, secret:true} ];
+  } else if(kind==='database'){
+    rows = [ {k:'Host', v:a.host}, {k:'Database', v:a.dbname}, {k:'User', v:a.username}, {k:'Password', v:a.password, secret:true}, {k:'TLS', v:a.tls?'Required':'Not required'} ];
+  } else {
+    rows = [
+      {k:'Username', v:a.username, note:a.userNote},
+      {k:'Email',    v:a.email,    note:a.emailNote},
+      {k:'Password', v:a.password, secret:true, note:a.passNote},
+    ];
+    if(a.proxy) rows.push({k:'Proxy', v:a.proxy, note:a.proxyNote});
+    if(a.phone) rows.push({k:'Phone', v:a.phone});
+  }
+  el.innerHTML = `
+    <div class="acard-top">
+      <div class="acard-alias">${esc(a.alias||'Untitled')}</div>
+      <div class="status-tag" style="color:${statusColor(a.status)};border-color:${statusColor(a.status)}">${a.status||'Standby'}</div>
+      ${kind==='api_key' && a.created ? rotationBadge(a.created) : ''}
+      <div class="acard-tools">
+        <button class="copy" title="Edit" data-edit>${ICN.edit}</button>
+        <button class="copy" title="Delete" data-del>${ICN.trash}</button>
+      </div>
+    </div>
+    ${rows.map(r=>`
+      <div class="rowblock">
+        <div class="row">
+          <div class="k">${r.k}</div>
+          <div class="v ${r.secret?'secret':''}" ${r.secret?'data-secret':''}>${r.secret?'••••••••••••':esc(r.v||'—')}</div>
+          <button class="copy" data-copy="${escAttr(r.v||'')}" ${r.secret?'data-secret-copy data-reveal':''}>${ICN.copy}</button>
+        </div>
+        ${r.note?`<div class="rownote">${esc(r.note)}</div>`:''}
+      </div>`).join('')}
+    ${a.created?`<div style="font-size:10.5px;color:var(--muted-2);margin-top:12px;letter-spacing:.05em">Created ${esc(a.created)}</div>`:''}
+    ${a.notes?`<div style="font-size:12px;color:var(--muted);margin-top:10px;line-height:1.5;border-top:1px solid var(--line-soft);padding-top:12px">${esc(a.notes)}</div>`:''}`;
+  el.querySelector('[data-edit]').onclick = ()=> openAccountModal(p, a);
+  el.querySelector('[data-del]').onclick = ()=>{ if(confirm('Delete this account?')){ p.accounts = p.accounts.filter(x=>x.id!==a.id); persist(); render(); } };
+  const secretRow = el.querySelector('[data-secret]');
+  if(secretRow){
+    let shown=false; secretRow.style.cursor='pointer'; secretRow.title='Click to reveal';
+    secretRow.onclick = ()=>{ shown=!shown; secretRow.textContent = shown? (a.password||'—') : '••••••••••••'; };
+  }
+  el.querySelectorAll('[data-copy]').forEach(btn=> btn.onclick = ()=> copyToClipboard(btn.getAttribute('data-copy'), btn, btn.hasAttribute('data-secret-copy')) );
+  return el;
+}
+
+/* ============================================================ MODALS ============================================================ */
+const modal = document.getElementById('modal');
+const modalCard = document.getElementById('modalCard');
+function openModal(html){ modalCard.innerHTML=html; modal.classList.add('on'); }
+function closeModal(){ modal.classList.remove('on'); }
+modal.onclick = e=>{ if(e.target===modal) closeModal(); };
+
+function openPlatformPicker(){
+  let selKey=null;
+  openModal(`
+    <h3>Add a Platform</h3>
+    <div class="msub">Pick from the catalog, or add <b>anything</b> as a custom platform with its own accent colour.</div>
+    <div class="picker" id="picker"></div>
+    <label class="lab">Or add ANY custom platform</label>
+    <div class="mrow" style="align-items:center">
+      <input class="inp" id="customName" placeholder="Name — e.g. OnlyFans, Battle.net, Bluesky, Matrix"/>
+      <input class="swatch" id="customColor" type="color" value="#c9a86a" style="flex:none"/>
+    </div>
+    <div class="modal-actions">
+      <button class="b-cancel" id="cancel">Cancel</button>
+      <button class="btn-primary" id="confirm" style="text-transform:uppercase">Add Platform</button>
+    </div>`);
+  const picker = document.getElementById('picker');
+  const existing = new Set(VAULT.platforms.map(p=>p.key));
+  const nameInp = document.getElementById('customName');
+  CATALOG.forEach(c=>{
+    const b=document.createElement('button'); b.className='pick'; b.style.setProperty('--tile-color', c.color);
+    b.innerHTML = `<small>${esc(c.name)}</small>`;
+    b.onclick = ()=>{ selKey=c.key; nameInp.value=''; picker.querySelectorAll('.pick').forEach(x=>x.classList.remove('sel')); b.classList.add('sel'); };
+    picker.appendChild(b);
+  });
+  const other=document.createElement('button'); other.className='pick other';
+  other.innerHTML = `<div class="pi">${ICN.plus}</div><small>Other…</small>`;
+  other.onclick = ()=>{ selKey=null; picker.querySelectorAll('.pick').forEach(x=>x.classList.remove('sel')); nameInp.focus(); };
+  picker.appendChild(other);
+  document.getElementById('cancel').onclick = closeModal;
+  document.getElementById('confirm').onclick = ()=>{
+    const custom = nameInp.value.trim();
+    if(custom){
+      VAULT.platforms.push({id:uid(), key:'custom:'+custom.toLowerCase(), name:custom, color:document.getElementById('customColor').value||'#c9a86a', accounts:[]});
+    } else if(selKey){
+      const c=CATALOG.find(x=>x.key===selKey);
+      VAULT.platforms.push({id:uid(), key:c.key, name:c.name, color:c.color, accounts:[]});
+    } else { toast('Pick a platform or type a custom name'); return; }
+    persist(); closeModal(); toast('Platform added to the matrix'); render();
+  };
+}
+
+function openAccountModal(p, existing){
+  const a = existing || {status:'Active'};
+  let kind = a.kind || 'login';
+  let status = a.status||'Active';
+  let sshKeyType = a.keyType||'Ed25519';
+  let dbTls = !!a.tls;
+  const kindFields = {
+    login: `
+      <label class="lab">Alias / label</label>
+      <input class="inp" id="f_alias" placeholder="Main · Alt / Stealth · Brand" value="${escAttr(a.alias)}"/>
+      <div class="mrow">
+        <div><label class="lab">Username</label><input class="inp" id="f_user" value="${escAttr(a.username)}"/></div>
+        <div><label class="lab">Email</label><input class="inp" id="f_email" value="${escAttr(a.email)}"/></div>
+      </div>
+      <div class="mrow">
+        <div><input class="inp note" id="f_usernote" value="${escAttr(a.userNote)}" placeholder="↳ note on username (optional)"/></div>
+        <div><input class="inp note" id="f_emailnote" value="${escAttr(a.emailNote)}" placeholder="↳ note on email (optional)"/></div>
+      </div>
+      <label class="lab">Password</label>
+      <div class="pw-wrap">
+        <input class="inp" id="f_pass" type="text" value="${escAttr(a.password)}" placeholder="••••••••"/>
+        <div class="pw-btns">
+          <button class="mini" id="genPass" title="Forge a fortress password">${ICN.key}</button>
+          <button class="mini" id="rerollPass" title="Re-roll">${ICN.refresh}</button>
+        </div>
+      </div>
+      <input class="inp note" id="f_passnote" value="${escAttr(a.passNote)}" placeholder="↳ note on password (e.g. rotated 2026-07, 2FA backup in notes)" style="margin-top:8px"/>
+      <div class="mrow" style="margin-top:4px">
+        <div><label class="lab">Proxy</label><input class="inp" id="f_proxy" placeholder="ip:port" value="${escAttr(a.proxy)}"/></div>
+        <div><label class="lab">Phone</label><input class="inp" id="f_phone" value="${escAttr(a.phone)}"/></div>
+      </div>`,
+    api_key: `
+      <label class="lab">Label</label>
+      <input class="inp" id="k_alias" placeholder="Production key · Personal project…" value="${escAttr(a.alias)}"/>
+      <label class="lab">API Key</label>
+      <div class="pw-wrap">
+        <input class="inp" id="k_secret" type="text" value="${escAttr(a.password)}" placeholder="sk-…"/>
+      </div>
+      <label class="lab">Scopes / permissions</label>
+      <input class="inp" id="k_scopes" value="${escAttr(a.scopes)}" placeholder="read:user, repo, workflow…"/>`,
+    ssh: `
+      <label class="lab">Label</label>
+      <input class="inp" id="s_alias" placeholder="Prod server · Home lab…" value="${escAttr(a.alias)}"/>
+      <div class="mrow">
+        <div><label class="lab">Host</label><input class="inp" id="s_host" value="${escAttr(a.host)}" placeholder="server.example.com"/></div>
+        <div><label class="lab">User</label><input class="inp" id="s_user" value="${escAttr(a.username)}" placeholder="root"/></div>
+      </div>
+      <label class="lab">Key type</label>
+      <div class="seg" id="s_keytypeSeg">
+        ${['Ed25519','RSA','ECDSA'].map(t=>`<button class="opt ${((a.keyType||'Ed25519')===t)?'sel':''}" data-t="${t}">${t}</button>`).join('')}
+      </div>
+      <label class="lab" style="margin-top:10px">Private key</label>
+      <textarea class="inp" id="s_secret" placeholder="-----BEGIN OPENSSH PRIVATE KEY-----">${esc(a.password||'')}</textarea>`,
+    database: `
+      <label class="lab">Label</label>
+      <input class="inp" id="d_alias" placeholder="Production DB…" value="${escAttr(a.alias)}"/>
+      <div class="mrow">
+        <div><label class="lab">Host</label><input class="inp" id="d_host" value="${escAttr(a.host)}" placeholder="db.example.com"/></div>
+        <div><label class="lab">Database</label><input class="inp" id="d_dbname" value="${escAttr(a.dbname)}"/></div>
+      </div>
+      <div class="mrow">
+        <div><label class="lab">User</label><input class="inp" id="d_user" value="${escAttr(a.username)}"/></div>
+        <div><label class="lab">Password</label><input class="inp" id="d_pass" type="text" value="${escAttr(a.password)}"/></div>
+      </div>
+      <button type="button" class="tg ${a.tls?'on':''}" id="d_tlsToggle"><span class="box">${ICN.check}</span>TLS required</button>`,
+  };
+  openModal(`
+    <h3>${existing?'Edit':'New'} Profile — ${esc(p.name)}</h3>
+    <div class="msub">Every field is encrypted under your master key before it touches disk.</div>
+    <label class="lab">Type</label>
+    <div class="seg" id="kindSeg">
+      ${[['login','Login'],['api_key','API Key'],['ssh','SSH'],['database','Database']].map(([k,lbl])=>
+        `<button class="opt ${kind===k?'sel':''}" data-k="${k}">${lbl}</button>`).join('')}
+    </div>
+    <div id="kindFieldsWrap" style="margin-top:14px">${kindFields[kind]}</div>
+    <label class="lab" style="margin-top:14px">Status</label>
+    <div class="seg" id="statusSeg">
+      ${STATUSES.map(s=>`<button class="opt ${a.status===s.key?'sel':''}" data-s="${s.key}" style="${a.status===s.key?`color:${s.color}`:''}">${s.key}</button>`).join('')}
+    </div>
+    <label class="lab">Notes</label>
+    <textarea class="inp" id="f_notes" placeholder="Operation, verification info, warm-up state, 2FA recovery codes…">${esc(a.notes||'')}</textarea>
+    <div class="modal-actions">
+      <button class="b-cancel" id="cancel">Cancel</button>
+      <button class="btn-primary" id="save" style="text-transform:uppercase">${existing?'Save changes':'Seal profile'}</button>
+    </div>`);
+  document.querySelectorAll('#statusSeg .opt').forEach(o=>{
+    o.onclick=()=>{ status=o.dataset.s; document.querySelectorAll('#statusSeg .opt').forEach(x=>{x.classList.remove('sel');x.style.color='';}); o.classList.add('sel'); o.style.color=statusColor(status); };
+  });
+  function wireKindFields(){
+    if(kind==='login'){
+      const passField = document.getElementById('f_pass');
+      const forge = ()=>{ passField.value = generatePassword(28, {u:1,l:1,d:1,s:1}, false); };
+      document.getElementById('genPass').onclick = forge;
+      document.getElementById('rerollPass').onclick = forge;
+    } else if(kind==='ssh'){
+      document.querySelectorAll('#s_keytypeSeg .opt').forEach(o=>{
+        o.onclick=()=>{ sshKeyType=o.dataset.t; document.querySelectorAll('#s_keytypeSeg .opt').forEach(x=>x.classList.remove('sel')); o.classList.add('sel'); };
+      });
+    } else if(kind==='database'){
+      const toggle = document.getElementById('d_tlsToggle');
+      toggle.onclick = ()=>{ dbTls=!dbTls; toggle.classList.toggle('on'); };
+    }
+  }
+  wireKindFields();
+  document.querySelectorAll('#kindSeg .opt').forEach(o=>{
+    o.onclick = ()=>{
+      kind = o.dataset.k;
+      document.querySelectorAll('#kindSeg .opt').forEach(x=>x.classList.remove('sel'));
+      o.classList.add('sel');
+      document.getElementById('kindFieldsWrap').innerHTML = kindFields[kind];
+      wireKindFields();
+    };
+  });
+  document.getElementById('cancel').onclick = closeModal;
+  document.getElementById('save').onclick = ()=>{
+    let data;
+    if(kind==='login'){
+      data = { kind, alias: val('f_alias'), username: val('f_user'), email: val('f_email'), userNote: val('f_usernote'), emailNote: val('f_emailnote'),
+        password: val('f_pass'), passNote: val('f_passnote'), proxy: val('f_proxy'), phone: val('f_phone'), status, notes: val('f_notes') };
+    } else if(kind==='api_key'){
+      data = { kind, alias: val('k_alias'), password: val('k_secret'), scopes: val('k_scopes'), status, notes: val('f_notes') };
+    } else if(kind==='ssh'){
+      data = { kind, alias: val('s_alias'), host: val('s_host'), username: val('s_user'), keyType: sshKeyType, password: val('s_secret'), status, notes: val('f_notes') };
+    } else {
+      data = { kind, alias: val('d_alias'), host: val('d_host'), dbname: val('d_dbname'), username: val('d_user'), password: val('d_pass'), tls: dbTls, status, notes: val('f_notes') };
+    }
+    if(existing){
+      Object.keys(existing).forEach(k=>{ if(k!=='id' && k!=='created') delete existing[k]; });
+      Object.assign(existing, data);
+    } else {
+      p.accounts.push({id:uid(), created:new Date().toISOString().slice(0,10), ...data});
+    }
+    persist(); closeModal(); toast(existing?'Profile updated':'Profile sealed'); render();
+  };
+}
+
+/* ============================================================ KEY FORGE ============================================================ */
+const SETS_FULL = { u:'ABCDEFGHIJKLMNOPQRSTUVWXYZ', l:'abcdefghijklmnopqrstuvwxyz', d:'0123456789', s:'!@#$%^&*()-_=+[]{};:,.<>/?~' };
+const SETS_SAFE = { u:'ABCDEFGHJKLMNPQRSTUVWXYZ', l:'abcdefghijkmnpqrstuvwxyz', d:'23456789', s:'!@#$%^&*-_=+?' };
+const setsOf = safe => safe? SETS_SAFE : SETS_FULL;
+function poolSize(opts, safe){ const S=setsOf(safe); let n=0; for(const k in opts) if(opts[k]) n+=S[k].length; return n||26; }
+function cryptoRandInt(n){ const a=new Uint32Array(1); crypto.getRandomValues(a); return a[0]%n; }
+function generatePassword(len, opts, safe){
+  const S=setsOf(safe); let pool='', req=[];
+  for(const k of ['u','l','d','s']) if(opts[k]){ pool+=S[k]; req.push(S[k]); }
+  if(!pool){ pool=S.l; req.push(S.l); }
+  let out=[];
+  req.forEach(set=> out.push(set[cryptoRandInt(set.length)]));
+  while(out.length<len) out.push(pool[cryptoRandInt(pool.length)]);
+  for(let i=out.length-1;i>0;i--){ const j=cryptoRandInt(i+1); [out[i],out[j]]=[out[j],out[i]]; }
+  return out.slice(0,len).join('');
+}
+function generatePassphrase(wordCount, sep){
+  const words=[];
+  for(let i=0;i<wordCount;i++) words.push(DICEWARE_WORDS[cryptoRandInt(DICEWARE_WORDS.length)]);
+  return words.join(sep);
+}
+const SCALES={3:'thousand',6:'million',9:'billion',12:'trillion',15:'quadrillion',18:'quintillion',21:'sextillion',24:'septillion',27:'octillion',30:'nonillion',33:'decillion',36:'undecillion',39:'duodecillion',42:'tredecillion',45:'quattuordecillion',48:'quindecillion',51:'sexdecillion',54:'septendecillion',57:'octodecillion',60:'novemdecillion',63:'vigintillion'};
+function fromLog10(x){
+  if(!isFinite(x)||x<0) return '0';
+  if(x<3) return Math.round(Math.pow(10,x)).toLocaleString();
+  const e=Math.floor(x), group=Math.floor(e/3)*3;
+  if(group>63){ const m=Math.pow(10,x-e); return `${m.toFixed(2)} × 10^${e}`; }
+  const mant=Math.pow(10, x-group);
+  const mstr = mant<10?mant.toFixed(2):mant<100?mant.toFixed(1):Math.round(mant).toString();
+  return `${mstr} ${SCALES[group]}`;
+}
+function crackText(log10combos){
+  const log10years = log10combos - 12 - Math.log10(3.1536e7); // @ 1e12 guesses/sec
+  if(log10years < -0.5) return 'cracked instantly';
+  if(log10years < 1.2) return `${Math.round(Math.pow(10,log10years))||1} years`;
+  return `${fromLog10(log10years)} years`;
+}
+let genState = { mode:'chars', len:32, opts:{u:1,l:1,d:1,s:1}, safe:false, words:6, sep:'-', value:'' };
+function renderGenerator(){
+  main.innerHTML = `
+    <div class="view-head"><div><h1 class="tracked-sm">Password Generator</h1><div class="sub">Cryptographically-random · CSPRNG-sourced · astronomically rare by design</div></div></div>
+    <div class="gen-card">
+      <div class="seg" id="genModeSeg" style="margin-bottom:16px">
+        <button class="opt ${genState.mode==='chars'?'sel':''}" data-m="chars">Characters</button>
+        <button class="opt ${genState.mode==='phrase'?'sel':''}" data-m="phrase">Passphrase</button>
+      </div>
+      <div class="gen-out" id="genOut"></div>
+      <div class="gen-strength"><i id="genBar"></i></div>
+      <div style="display:flex;justify-content:space-between;margin-top:9px;font-size:11.5px;color:var(--muted)">
+        <span id="genEnt"></span><span id="genLabel"></span>
+      </div>
+      <div class="gen-stats">
+        <div class="gstat wide"><div class="glab">Odds of guessing this in one try</div><div class="gval" id="sRare"></div></div>
+        <div class="gstat"><div class="glab">Entropy</div><div class="gval" id="sBits"></div></div>
+        <div class="gstat"><div class="glab" id="sPoolLab">Character pool</div><div class="gval" id="sPool"></div></div>
+        <div class="gstat"><div class="glab">Time to crack @ 1 trillion/s</div><div class="gval" id="sCrack"></div></div>
+      </div>
+      <div class="gen-controls" id="genControlsChars" style="display:${genState.mode==='chars'?'block':'none'}">
+        <div class="slide">
+          <input type="range" id="genLen" min="8" max="100" value="${genState.len}"/>
+          <span class="num" id="genLenN">${genState.len}</span>
+        </div>
+        <div class="toggles" id="genToggles">
+          ${[['u','A-Z'],['l','a-z'],['d','0-9'],['s','!@#$']].map(([k,lbl])=>`
+            <button class="tg ${genState.opts[k]?'on':''}" data-k="${k}"><span class="box">${ICN.check}</span>${lbl}</button>`).join('')}
+          <button class="tg ${genState.safe?'on':''}" data-safe="1"><span class="box">${ICN.check}</span>No look-alikes</button>
+        </div>
+      </div>
+      <div class="gen-controls" id="genControlsPhrase" style="display:${genState.mode==='phrase'?'block':'none'}">
+        <div class="slide">
+          <input type="range" id="genWords" min="4" max="10" value="${genState.words}"/>
+          <span class="num" id="genWordsN">${genState.words}</span>
+        </div>
+        <div class="toggles" id="genSepToggles">
+          ${[['-','Dash'],[' ','Space'],['.','Dot']].map(([sep,lbl])=>`
+            <button class="tg ${genState.sep===sep?'on':''}" data-sep="${escAttr(sep)}"><span class="box">${ICN.check}</span>${lbl}</button>`).join('')}
+        </div>
+      </div>
+      <div style="display:flex;gap:12px;margin-top:6px">
+        <button class="btn-ghost" id="genRoll">${ICN.refresh} Forge new</button>
+        <button class="btn-ghost btn-gold" id="genCopy">${ICN.copy} Copy</button>
+      </div>
+    </div>`;
+  const roll = ()=>{
+    genState.value = genState.mode==='phrase'
+      ? generatePassphrase(genState.words, genState.sep)
+      : generatePassword(genState.len, genState.opts, genState.safe);
+    paint();
+  };
+  const paint = ()=>{
+    document.getElementById('genOut').textContent = genState.value;
+    const isPhrase = genState.mode==='phrase';
+    const N = isPhrase ? DICEWARE_WORDS.length : poolSize(genState.opts, genState.safe);
+    const count = isPhrase ? genState.words : genState.len;
+    const bits = Math.round(count*Math.log2(N));
+    const log10combos = count*Math.log10(N);
+    const bar = document.getElementById('genBar');
+    bar.style.width = Math.min(100, bits/200*100)+'%';
+    bar.style.background = bits<50?'var(--red)':bits<80?'var(--amber)':bits<128?'var(--green)':'linear-gradient(90deg,#c9a86a,#efd9a0)';
+    document.getElementById('genEnt').textContent = `${bits} bits of entropy`;
+    document.getElementById('genLabel').textContent = bits<45?'Weak':bits<70?'Fair':bits<100?'Strong':bits<140?'Very strong':bits<200?'Fortress':'Cosmic';
+    document.getElementById('sRare').innerHTML = `1 in <b>${fromLog10(log10combos)}</b>`;
+    document.getElementById('sBits').textContent = `${bits} bits`;
+    document.getElementById('sPoolLab').textContent = isPhrase ? 'Word list size' : 'Character pool';
+    document.getElementById('sPool').textContent = isPhrase ? `${N} words` : `${N} chars`;
+    document.getElementById('sCrack').textContent = crackText(log10combos);
+  };
+  document.querySelectorAll('#genModeSeg .opt').forEach(o=> o.onclick = ()=>{
+    genState.mode = o.dataset.m;
+    document.querySelectorAll('#genModeSeg .opt').forEach(x=>x.classList.remove('sel'));
+    o.classList.add('sel');
+    document.getElementById('genControlsChars').style.display = genState.mode==='chars'?'block':'none';
+    document.getElementById('genControlsPhrase').style.display = genState.mode==='phrase'?'block':'none';
+    roll();
+  });
+  document.getElementById('genLen').oninput = e=>{ genState.len=+e.target.value; document.getElementById('genLenN').textContent=genState.len; roll(); };
+  document.querySelectorAll('#genToggles .tg').forEach(t=> t.onclick=()=>{
+    if(t.dataset.safe){ genState.safe=!genState.safe; t.classList.toggle('on'); roll(); return; }
+    const k=t.dataset.k; const on=['u','l','d','s'].filter(x=>genState.opts[x]).length;
+    if(genState.opts[k] && on<=1) return;
+    genState.opts[k]=genState.opts[k]?0:1; t.classList.toggle('on'); roll();
+  });
+  document.getElementById('genWords').oninput = e=>{ genState.words=+e.target.value; document.getElementById('genWordsN').textContent=genState.words; roll(); };
+  document.querySelectorAll('#genSepToggles .tg').forEach(t=> t.onclick=()=>{
+    genState.sep = t.dataset.sep;
+    document.querySelectorAll('#genSepToggles .tg').forEach(x=>x.classList.remove('on'));
+    t.classList.add('on');
+    roll();
+  });
+  document.getElementById('genRoll').onclick = roll;
+  document.getElementById('genCopy').onclick = ()=> copyToClipboard(genState.value, document.getElementById('genCopy'), true);
+  roll();
+}
+
+/* ============================================================ SECURITY ============================================================ */
+function renderSecurity(){
+  main.innerHTML = `
+    <div class="view-head"><div><h1 class="tracked-sm">Security</h1><div class="sub">What Aegis actually protects against — no more, no less.</div></div></div>
+    <div class="panel">
+      <h4>${ICN.shield} What holding the encrypted vault gets an attacker</h4>
+      <p>If someone obtains the encrypted vault itself — a stolen <b>.vlt</b> backup, a copied browser storage file, a disk image — they cannot recover your master password, your derived vault key, or any plaintext secret without the master password itself. This holds regardless of how long they hold the ciphertext or what future computing power they bring to it, as long as Argon2id/PBKDF2 and AES-256-GCM remain uncompromised.</p>
+    </div>
+    <div class="panel">
+      <h4>${ICN.eye} What Aegis cannot protect against</h4>
+      <p>An attacker with live control of your <i>unlocked</i> device is a different, unsolvable problem. While the vault is open, plaintext exists in memory, in the page, and possibly the clipboard — malware, a malicious browser extension, or someone physically watching can capture it in that moment. Auto-lock, clipboard auto-clear, and never sending plaintext anywhere shrink this window — nothing shrinks it to zero. This is true of every password manager, not a weakness unique to Aegis.</p>
+    </div>
+    <div class="panel">
+      <h4>${ICN.key} Why there's no anti-tamper, corruption, or self-destruct system</h4>
+      <p>A wrong master key already fails AES-GCM's authentication tag — the result is indistinguishable from noise, with zero risk of a false trigger destroying your real data. That's the honest version of "wrong key gets nothing." A mutable tripwire that intentionally corrupts data would only add a way to lose your own vault by accident.</p>
+    </div>
+    <div class="panel">
+      <h4>${ICN.crown} The duress vault is a detection layer, not a disguise</h4>
+      <p>The duress vault (Backup &amp; Keys) opens a separate, real vault under a second password — it never alters or hides the real vault's ciphertext. The math that protects your actual vault doesn't change depending on who's asking.</p>
+    </div>`;
+}
+
+/* ============================================================ BACKUP & KEYS ============================================================ */
+function renderBackup(){
+  const kdf = KDFMETA && KDFMETA.kind==='argon2id' ? 'Argon2id · 64 MiB memory-hard' : 'PBKDF2-SHA256 · 600k iterations';
+  const rec = sentinelRec(), on = sentinelOn();
+  const decoyOn = !!localStorage.getItem(DECOY_KEY);
+  main.innerHTML = `
+    <div class="view-head"><div><h1 class="tracked-sm">Backup &amp; Keys</h1><div class="sub">Your vault currently lives only in this app's local storage — export a sealed copy so you can never lose it.</div></div></div>
+    ${DECOY_MODE ? '' : `
+    <div class="panel">
+      <h4>${ICN.phone} Sentinel — authenticator unlock</h4>
+      <div class="status-line">
+        <span class="sdot" style="background:${on?'var(--green)':'var(--muted-2)'};box-shadow:${on?'0 0 8px var(--green)':'none'}"></span>
+        ${on ? `Enrolled${rec && rec.added?` · ${esc(rec.added)}`:''} — unlock with a 6-digit code` : 'Not enrolled — master key only'}
+      </div>
+      <p>Pair <b>Bitwarden Authenticator</b> — or Google Authenticator, Authy, 1Password, Proton Pass, any standard TOTP app. The lock screen then asks for the rotating 6-digit code, and your master key moves behind the golden <b>G</b> as the always-works fallback.</p>
+      ${on
+        ? `<div style="display:flex;gap:10px;flex-wrap:wrap">
+             <button class="btn-ghost" id="reEnroll">${ICN.refresh} Re-pair device</button>
+             <button class="btn-ghost" id="offEnroll" style="border-color:#5a2a2a;color:#e08a8a">${ICN.trash} Disable</button>
+           </div>`
+        : `<button class="btn-ghost btn-gold" id="doEnroll">${ICN.phone} Set up authenticator</button>`}
+      <div class="warnbox">
+        <b>Read this before enabling.</b> A 6-digit code is far too small to be an encryption key, so enrolling stores your master key on this device, sealed under a key derived from the authenticator secret. That secret also lives here — it has to, to check your codes. So anyone who can read this device's browser storage can recover the vault <b>without</b> the code. It is a convenience lock, not a second wall. Your master key alone remains the strong path — leave Sentinel off if the threat you care about is someone getting your files.
+      </div>
+    </div>
+    <div class="panel">
+      <h4>${ICN.crown} Duress vault</h4>
+      <div class="status-line">
+        <span class="sdot" style="background:${decoyOn?'var(--green)':'var(--muted-2)'};box-shadow:${decoyOn?'0 0 8px var(--green)':'none'}"></span>
+        ${decoyOn ? 'Configured — a second password opens a decoy vault' : 'Not configured'}
+      </div>
+      <p>Set a second password that opens a completely separate, real-looking vault instead of this one. If you're ever forced to unlock Aegis, give up the duress password instead — whoever's watching gets a normal vault with nothing to protect, and this one is never touched or altered.</p>
+      ${decoyOn
+        ? `<button class="btn-ghost" id="offDecoy" style="border-color:#5a2a2a;color:#e08a8a">${ICN.trash} Remove duress vault</button>`
+        : `<button class="btn-ghost btn-gold" id="doDecoy">${ICN.crown} Set up duress vault</button>`}
+    </div>`}
+    <div class="panel">
+      <h4>${ICN.down} Export encrypted backup</h4>
+      <p>Downloads a <b>.vlt</b> file — the exact same AES-256-GCM ciphertext, still locked by your master key. Safe to store on a USB stick, another drive, or the cloud: without the master key it is meaningless noise.</p>
+      <button class="btn-ghost btn-gold" id="doExport">${ICN.down} Export .vlt backup</button>
+    </div>
+    <div class="panel">
+      <h4>${ICN.up} Restore from backup</h4>
+      <p>Loads a <b>.vlt</b> file back in. This <b>replaces</b> the current vault, then re-locks so you unlock with that backup's master key.</p>
+      <input type="file" id="importFile" accept=".vlt,application/json" style="display:none"/>
+      <button class="btn-ghost" id="doImport">${ICN.up} Choose .vlt file…</button>
+    </div>
+    <div class="panel">
+      <h4>${ICN.shield} Encryption in force</h4>
+      <p style="margin:0">Cipher: <b>AES-256-GCM</b> (authenticated).<br/>Key derivation: <b>${kdf}</b>.<br/>Keys are held in memory only and wiped on lock. Auto-locks after 5 min idle.</p>
+    </div>
+    <div class="panel danger">
+      <h4>${ICN.trash} Reset vault</h4>
+      <p>Permanently wipes the vault from this device. Irreversible unless you have a .vlt backup. Export first.</p>
+      <button class="btn-ghost" id="doReset" style="border-color:#5a2a2a;color:#e08a8a">${ICN.trash} Wipe this vault</button>
+    </div>`;
+  if(!DECOY_MODE){
+    const enrollBtn = document.getElementById('doEnroll') || document.getElementById('reEnroll');
+    if(enrollBtn) enrollBtn.onclick = openSentinelSetup;
+    const offBtn = document.getElementById('offEnroll');
+    if(offBtn) offBtn.onclick = ()=>{
+      if(confirm('Disable authenticator unlock? The lock screen goes back to master key only, and the stored copy of your master key is erased from this device.')){
+        sentinelClear(); toast('Sentinel disabled'); render();
+      }
+    };
+    const doDecoyBtn = document.getElementById('doDecoy');
+    if(doDecoyBtn) doDecoyBtn.onclick = openDecoySetup;
+    const offDecoyBtn = document.getElementById('offDecoy');
+    if(offDecoyBtn) offDecoyBtn.onclick = ()=>{
+      if(confirm('Remove the duress vault? The duress password will stop working.')){
+        localStorage.removeItem(DECOY_KEY); toast('Duress vault removed'); render();
+      }
+    };
+  }
+  document.getElementById('doExport').onclick = exportBackup;
+  const fileInp = document.getElementById('importFile');
+  document.getElementById('doImport').onclick = ()=> fileInp.click();
+  fileInp.onchange = ()=>{ if(fileInp.files[0]) importBackup(fileInp.files[0]); };
+  document.getElementById('doReset').onclick = ()=>{
+    if(confirm('Wipe the entire vault from this device? This cannot be undone unless you have a .vlt backup.')){
+      localStorage.removeItem(activeStoreKey());
+      if(!DECOY_MODE) sentinelClear();
+      toast('Vault wiped'); setTimeout(()=>location.reload(), 700);
+    }
+  };
+}
+function openSentinelSetup(){
+  const secret = base32Encode(crypto.getRandomValues(new Uint8Array(20)));
+  /* every parameter stated outright rather than left to each app's defaults —
+     Bitwarden, Google Authenticator, Authy, 1Password, Proton Pass all read this form */
+  const uri = `otpauth://totp/Aegis:vault?secret=${secret}&issuer=Aegis&algorithm=SHA1&digits=6&period=30`;
+  let qr;
+  try{ qr = qrSvg(uri); }
+  catch(e){ qr = `<div style="color:var(--muted-2);font-size:12px;text-align:center">QR unavailable — use the setup key below.</div>`; }
+  openModal(`
+    <h3>Set up authenticator</h3>
+    <div class="msub">Pair a TOTP app, then unlock with a rotating 6-digit code.</div>
+
+    <div class="step"><div class="sn">1</div><div><b>Confirm it's you.</b> Your master key gets sealed under the authenticator secret, so it has to be entered once.</div></div>
+    <input class="inp" id="s_master" type="password" placeholder="Master key" autocomplete="off" spellcheck="false"/>
+
+    <div class="step" style="margin-top:20px"><div class="sn">2</div><div><b>Scan this in Bitwarden</b> — Authenticator tab → <b>+</b> → Scan QR code. (Or in the Bitwarden extension: edit an item → Authenticator key → Scan.) Any other TOTP app works too: Google Authenticator, Authy, 1Password, Proton Pass. No camera? Use <b>Enter key manually</b> and paste the setup key below.</div></div>
+    <div class="qr-box">
+      ${qr}
+      <div class="seckey" id="s_secret">${secret.replace(/(.{4})/g,'$1 ').trim()}</div>
+      <button class="btn-ghost" id="s_copy" style="font-size:11.5px;padding:8px 14px">${ICN.copy} Copy setup key</button>
+    </div>
+
+    <div class="step" style="margin-top:20px"><div class="sn">3</div><div><b>Prove it took.</b> Type the code your app is showing right now.</div></div>
+    <input class="inp" id="s_code" inputmode="numeric" maxlength="6" placeholder="000000" autocomplete="one-time-code" spellcheck="false"
+           style="font-family:ui-monospace,monospace;font-size:20px;text-align:center;letter-spacing:.35em"/>
+
+    <div class="warnbox">
+      <b>The honest tradeoff:</b> this stores your master key on this device, unlocked by a secret that also lives here. It defends against someone glancing at your screen — <b>not</b> against someone who copies your browser storage. Keep a <b>.vlt</b> backup and remember your master key regardless.
+    </div>
+
+    <div class="modal-actions">
+      <button class="b-cancel" id="cancel">Cancel</button>
+      <button class="btn-primary" id="s_go" style="text-transform:uppercase">Enable Sentinel</button>
+    </div>`);
+  document.getElementById('cancel').onclick = closeModal;
+  document.getElementById('s_copy').onclick = ()=> copyToClipboard(secret, document.getElementById('s_copy'), false);
+  const codeInp = document.getElementById('s_code');
+  codeInp.addEventListener('input', ()=>{ codeInp.value = codeInp.value.replace(/\D/g,'').slice(0,6); });
+  document.getElementById('s_go').onclick = async ()=>{
+    const pw = document.getElementById('s_master').value;
+    const code = codeInp.value.replace(/\D/g,'');
+    if(!pw){ toast('Enter your master key'); return; }
+    if(code.length !== 6){ toast('Enter the 6-digit code from your app'); return; }
+    const btn = document.getElementById('s_go');
+    btn.disabled = true; btn.textContent = 'Verifying…'; btn.style.opacity = '.7';
+    await new Promise(r=>setTimeout(r,20));
+    try{
+      if(!(await verifyMasterPassword(pw))){ toast('Master key rejected'); return; }
+      if(!(await totpVerify(base32Decode(secret), code))){ toast('Code did not match — check the pairing and your clock'); return; }
+      await sentinelEnroll(pw, secret);
+      closeModal(); toast('Sentinel armed — next unlock takes a code'); render();
+    }catch(e){ toast('Setup failed'); }
+    finally{ btn.disabled=false; btn.textContent='Enable Sentinel'; btn.style.opacity=''; }
+  };
+}
+
+function exportBackup(){
+  const rec = localStorage.getItem(activeStoreKey());
+  if(!rec){ toast('Nothing to export yet'); return; }
+  const blob = new Blob([rec], {type:'application/octet-stream'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href=url; a.download=`aegis-backup-${new Date().toISOString().slice(0,10)}.vlt`;
+  document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+  toast('Encrypted backup exported');
+}
+function importBackup(file){
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    try{
+      const obj = JSON.parse(reader.result);
+      if(!obj.ct || !obj.iv || !obj.salt) throw 0;
+      if(!confirm('Restore this backup? It will replace the current vault and re-lock.')) return;
+      localStorage.setItem(activeStoreKey(), reader.result);
+      if(!DECOY_MODE) sentinelClear();   // that vault has a different master key
+      toast('Backup restored — unlock with its master key');
+      setTimeout(()=>location.reload(), 900);
+    }catch(e){ toast('Invalid or corrupted .vlt file'); }
+  };
+  reader.readAsText(file);
+}
+
+function decoyUsername(){
+  const adjectives=['silver','quiet','northern','amber','stone','cedar','harbor','maple','iron','coral'];
+  const nouns=['fox','wren','otter','hawk','lynx','heron','elm','reef','drift','vale'];
+  const a = adjectives[Math.floor(Math.random()*adjectives.length)];
+  const n = nouns[Math.floor(Math.random()*nouns.length)];
+  const num = Math.floor(Math.random()*90+10);
+  return `${a}${n}${num}`;
+}
+async function createDecoyVault(pw){
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const useArgon = await argonWorks();
+  const meta = useArgon ? {kind:'argon2id', argon:{...ARGON}} : {kind:'pbkdf2', iterations:PBKDF2_ITERS};
+  const key = useArgon ? await deriveKeyArgon(pw, salt, ARGON) : await deriveKeyPBKDF2(pw, salt, PBKDF2_ITERS);
+  const basePlatforms = (VAULT && VAULT.platforms.length) ? VAULT.platforms : seed().platforms;
+  const statuses = ['Active','Standby','Warm'];
+  const decoyVault = { platforms: basePlatforms.map(p=>({
+    id: uid(), key:p.key, name:p.name, color:p.color,
+    accounts: [{
+      id: uid(), alias:'Main', username: decoyUsername(), email:'',
+      password: generatePassword(20, {u:1,l:1,d:1,s:1}, true),
+      status: statuses[Math.floor(Math.random()*statuses.length)],
+      notes:'', created: new Date().toISOString().slice(0,10),
+    }],
+  })) };
+  const {iv, ct} = await encryptData(key, decoyVault);
+  const rec = { v:1, salt:b64(salt), iv, ct };
+  if(meta.kind==='argon2id'){ rec.kdf='argon2id'; rec.argon=meta.argon; }
+  else { rec.kdf='PBKDF2-SHA256'; rec.iterations=meta.iterations; }
+  localStorage.setItem(DECOY_KEY, JSON.stringify(rec));
+}
+function openDecoySetup(){
+  openModal(`
+    <h3>Set up duress vault</h3>
+    <div class="msub">A second password. Entering it at the lock screen opens this instead of your real vault.</div>
+    <label class="lab">Duress password</label>
+    <input class="inp" id="dz_pw" type="password" placeholder="Must differ from your master key"/>
+    <label class="lab">Confirm</label>
+    <input class="inp" id="dz_pw2" type="password"/>
+    <div class="warnbox">
+      <b>Detection layer, not a crypto substitute.</b> This never changes your real vault's ciphertext — it's a separate, independently encrypted vault, auto-filled with plausible fake accounts on every platform you currently have. Nothing here endangers the real one.
+    </div>
+    <div class="modal-actions">
+      <button class="b-cancel" id="cancel">Cancel</button>
+      <button class="btn-primary" id="dz_go" style="text-transform:uppercase">Create duress vault</button>
+    </div>`);
+  document.getElementById('cancel').onclick = closeModal;
+  document.getElementById('dz_go').onclick = async ()=>{
+    const pw = document.getElementById('dz_pw').value;
+    const pw2 = document.getElementById('dz_pw2').value;
+    if(pw.length < 6){ toast('Duress password must be at least 6 characters'); return; }
+    if(pw !== pw2){ toast('Passwords do not match'); return; }
+    const btn = document.getElementById('dz_go');
+    btn.disabled = true; btn.textContent = 'Sealing…'; btn.style.opacity='.7';
+    await new Promise(r=>setTimeout(r,20));
+    try{
+      if(await verifyMasterPassword(pw)){ toast('Pick a password different from your master key'); return; }
+      await createDecoyVault(pw);
+      closeModal(); toast('Duress vault ready'); render();
+    } finally { btn.disabled=false; btn.textContent='Create duress vault'; btn.style.opacity=''; }
+  };
+}
+
+
+/* ============================================================ UTIL ============================================================ */
+function val(id){ const el=document.getElementById(id); return el? el.value.trim() : ''; }
+function esc(s){ return (s==null?'':String(s)).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+function escAttr(s){ return (s==null?'':String(s)).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+let CLIP_TIMER=null;
+async function copyToClipboard(text, btn, secret){
+  if(!text){ return; }
+  try{
+    if(navigator.clipboard && window.isSecureContext){ await navigator.clipboard.writeText(text); }
+    else { const t=document.createElement('textarea'); t.value=text; t.style.position='fixed'; t.style.opacity='0'; document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove(); }
+  }catch(e){}
+  if(secret){
+    toast('Copied · clipboard auto-clears in 30s');
+    clearTimeout(CLIP_TIMER);
+    CLIP_TIMER = setTimeout(async()=>{ try{ if(navigator.clipboard && window.isSecureContext) await navigator.clipboard.writeText(''); }catch(e){} }, 30000);
+  }
+  if(btn){
+    const html=btn.innerHTML;
+    btn.classList.add('done'); btn.innerHTML = ICN.check + '<span class="sweep"></span>';
+    setTimeout(()=>{ btn.classList.remove('done'); btn.innerHTML=html; }, 1100);
+  }
+}
+const toastEl = document.getElementById('toast');
+function toast(msg){ toastEl.innerHTML = ICN.shield + msg; toastEl.classList.add('on'); clearTimeout(toast._t); toast._t=setTimeout(()=>toastEl.classList.remove('on'),2400); }
+
+document.getElementById('search').addEventListener('input', ()=>{ if(VIEW==='vault') renderVault(); else if(VIEW==='platform'){/* stay */} else setView('vault'); });
+</script>
+</body>
+</html>

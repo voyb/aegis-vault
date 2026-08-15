@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=Aegis
+Comment=Autonomous Encrypted Guardian for Identity Security
+# Desktop entries need absolute paths - there's no portable "relative to
+# this file" field code that all desktop environments honor. Replace
+# /path/to/aegis with wherever you extracted the release folder (the one
+# containing the Aegis binary, index.html, vendor/, and this icon).
+Exec=/path/to/aegis/Aegis
+Icon=/path/to/aegis/icon/aegis_256.png
+Terminal=false
+Categories=Utility;Security;
