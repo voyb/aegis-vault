@@ -1,10 +1,6 @@
 <div align="center">
 
-<img src="icon/aegis_256.png" width="96" height="96" alt="Aegis" />
-
-# AEGIS
-
-**A**utonomous **E**ncrypted **G**uardian for **I**dentity **S**ecurity
+<img src="social/preview.png" width="100%" alt="Aegis: offline password, identity, and secret vault" />
 
 [![Build](https://github.com/voyb/aegis-vault/actions/workflows/build.yml/badge.svg)](https://github.com/voyb/aegis-vault/actions/workflows/build.yml)
 [![Release](https://img.shields.io/github/v/release/voyb/aegis-vault?color=c9a86a)](https://github.com/voyb/aegis-vault/releases/latest)
@@ -58,6 +54,40 @@ for it:
 | **API Key** | label, key, scopes, rotation age indicator |
 | **SSH** | host, user, key type, private key |
 | **Database** | host, database name, user, password, TLS flag |
+
+## Try it in 60 seconds
+
+1. Run the install command above. Aegis opens in its own window.
+2. Choose a master password. This is the only password you will ever
+   need to remember, write it down somewhere safe until it is memorized.
+3. Click **Add Platform**, pick GitHub (or type any custom name), then
+   **Add Account**.
+4. Pick the account type. For a GitHub personal access token, choose
+   **API Key**, paste it into the Key field, tag it with scopes like
+   `repo, workflow`, and save.
+5. Click into **Password Generator** and switch to Passphrase mode for
+   something you could actually read over the phone, or Characters mode
+   for maximum entropy. Either way, copy it straight into the field you
+   needed it for.
+6. Open **Security** and read exactly what the encryption underneath you
+   does and does not protect against. No app should ask for your secrets
+   without telling you that up front.
+
+That is the whole workflow. Everything else, the duress vault, TOTP
+unlock, encrypted backups, is there when you want it and invisible when
+you do not.
+
+## How it compares
+
+**vs. Bitwarden / 1Password:** no servers to maintain, no cloud account,
+no subscription, and nothing to be compromised in when the vendor
+eventually is. Your vault is not on a target list because there is no
+list.
+
+**vs. KeePass / KeePassXC:** a modern web-based interface in a single
+file instead of a heavier native client, with typed profiles for API
+keys, SSH keys, and database credentials built in from the start rather
+than stuffed into generic notes fields.
 
 ## The philosophy
 
@@ -188,6 +218,18 @@ the vault. Back it up regularly from Backup & Keys, Export .vlt backup,
 the exported file is the same ciphertext, still locked by your master
 password, safe to store anywhere.
 
+## Trust, but verify
+
+Security tools should not ask to be taken on faith. Every release binary
+is built in the open by [GitHub Actions](.github/workflows/build.yml)
+directly from the tagged commit, not on my machine, so the build log is
+the proof it matches the source. Read [SECURITY.md](SECURITY.md) for how
+to verify that yourself, report a vulnerability privately, or just see
+what is in and out of scope.
+
+Code reviews, security audits, and pull requests are genuinely welcome.
+A tool like this gets better with more eyes on it, not fewer.
+
 ## Project layout
 
 ```
@@ -198,8 +240,10 @@ aegis.spec           PyInstaller build spec for the packaged executables
 install.sh           one-line installer for macOS/Linux
 install.ps1          one-line installer for Windows
 icon/                app icon source and generated .ico/.icns/.png
+social/              social preview banner source
 linux/               Linux .desktop entry template
 .github/workflows/   CI that builds all three platform executables on tag push
+SECURITY.md          how to verify builds and report vulnerabilities
 ```
 
 ## License
