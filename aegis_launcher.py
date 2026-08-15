@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Aegis launcher — opens index.html as a standalone, chromeless app window.
+"""Aegis launcher - opens index.html as a standalone, chromeless app window.
 
 Works the same way on Windows, macOS, and Linux: it looks for an installed
 Chromium-family browser (Edge, Chrome, Brave, Chromium, in that order) and
-opens the local index.html in that browser's "app mode" — no address bar,
+opens the local index.html in that browser's "app mode" - no address bar,
 no tabs, its own window and taskbar/dock icon. If none of those are found,
 it falls back to opening index.html in the system's default browser.
 
@@ -85,7 +85,7 @@ def _report_missing_index(folder: Path) -> None:
     if sys.stdin is not None and sys.stdin.isatty():
         input("Press Enter to exit...")
         return
-    # No console attached (windowed build) — try a native message box instead.
+    # No console attached (windowed build) - try a native message box instead.
     try:
         import tkinter
         from tkinter import messagebox

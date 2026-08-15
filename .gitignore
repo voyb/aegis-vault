@@ -1,9 +1,9 @@
-# Secrets — never commit these
+# Secrets - never commit these
 key.txt
 github.txt
 *.vlt
 
-# PyInstaller build output (icon source files in icon/ are NOT ignored — CI needs them)
+# PyInstaller build output (icon source files in icon/ are NOT ignored - CI needs them)
 build/
 dist/
 __pycache__/
@@ -13,7 +13,7 @@ __pycache__/
 .DS_Store
 Thumbs.db
 
-# Local tooling / dev notes — not part of the published project
+# Local tooling / dev notes - not part of the published project
 .token-optimizer/
 .claude/
 docs/

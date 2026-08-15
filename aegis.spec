@@ -1,7 +1,7 @@
-# PyInstaller spec — builds the Aegis launcher into a single-file executable.
+# PyInstaller spec - builds the Aegis launcher into a single-file executable.
 #   Windows:  dist/Aegis.exe            (icon: icon/aegis.ico)
 #   macOS:    dist/Aegis.app            (icon: icon/aegis.icns)
-#   Linux:    dist/Aegis                (no embedded icon — ELF binaries don't
+#   Linux:    dist/Aegis                (no embedded icon - ELF binaries don't
 #                                        carry one; pair with a .desktop entry
 #                                        that points at icon/aegis_256.png)
 #

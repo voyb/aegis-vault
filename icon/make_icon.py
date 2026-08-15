@@ -1,6 +1,6 @@
 """Generates icon/aegis_1024.png (master), icon/aegis.ico (Windows),
 icon/aegis.icns (macOS), and icon/aegis_256.png / aegis_512.png (Linux)
-from scratch with Pillow — no SVG rasterizer needed.
+from scratch with Pillow - no SVG rasterizer needed.
 
 Run: python icon/make_icon.py
 """
