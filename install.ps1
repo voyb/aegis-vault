@@ -16,7 +16,7 @@ $url  = "https://github.com/$repo/releases/latest/download/Aegis-windows.zip"
 Write-Host "Installing Aegis to $dest ..."
 New-Item -ItemType Directory -Force -Path $dest | Out-Null
 
-$tmpZip = New-TemporaryFile
+$tmpZip = Join-Path $env:TEMP "aegis-install.zip"
 Invoke-WebRequest -Uri $url -OutFile $tmpZip
 
 Expand-Archive -Path $tmpZip -DestinationPath $dest -Force
