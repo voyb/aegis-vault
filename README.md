@@ -36,6 +36,11 @@ launches it. No admin rights, no package manager, no dependencies, nothing
 left behind if you delete the folder. First launch asks you to choose a
 master password, and you are in.
 
+<div align="center">
+<img src="social/demo.gif" width="100%" alt="Aegis: unlock, the account dashboard, typed credential profiles, the password generator, and the security page" />
+<sub>Every frame above is a real screenshot of the running app, not a mockup.</sub>
+</div>
+
 ## What it is
 
 Aegis stores your accounts: usernames, passwords, API keys, SSH keys,
