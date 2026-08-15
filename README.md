@@ -38,7 +38,6 @@ master password, and you are in.
 
 <div align="center">
 <img src="social/demo.gif" width="100%" alt="Aegis: unlock, the account dashboard, typed credential profiles, the password generator, and the security page" />
-<br/><sub>A real screenshot capture of the running app, not a mockup.</sub>
 </div>
 
 ## What it is
@@ -244,8 +243,8 @@ whole thing (markup, styling, and logic together) is under 1,700 lines.
 **Is the crypto audited by a third party?**
 Not yet, formally. It uses standard, named primitives (Argon2id,
 AES-256-GCM) through WebCrypto and hash-wasm rather than anything
-custom, and the code is small enough to actually read. See
-[SECURITY.md](SECURITY.md), audits and review are welcome.
+custom, and the code is small enough to actually read. Audits and
+review are welcome.
 
 **Can I trust a password manager that is a single HTML file?**
 That file is exactly what runs, there is no build step hiding what
@@ -261,9 +260,7 @@ up anything else you cannot afford to lose.
 Security tools should not ask to be taken on faith. Every release binary
 is built in the open by [GitHub Actions](.github/workflows/build.yml)
 directly from the tagged commit, not on my machine, so the build log is
-the proof it matches the source. Read [SECURITY.md](SECURITY.md) for how
-to verify that yourself, report a vulnerability privately, or just see
-what is in and out of scope.
+the proof it matches the source.
 
 Code reviews, security audits, and pull requests are genuinely welcome.
 A tool like this gets better with more eyes on it, not fewer.
@@ -277,11 +274,10 @@ aegis_launcher.py    cross-platform launcher (Windows/macOS/Linux)
 aegis.spec           PyInstaller build spec for the packaged executables
 install.sh           one-line installer for macOS/Linux
 install.ps1          one-line installer for Windows
-icon/                app icon source and generated .ico/.icns/.png
-social/              social preview banner source
+icon/                app icon: .ico (Windows), .icns (macOS), .png (Linux)
+social/              README banner and demo GIF
 linux/               Linux .desktop entry template
 .github/workflows/   CI that builds all three platform executables on tag push
-SECURITY.md          how to verify builds and report vulnerabilities
 ```
 
 ## License
