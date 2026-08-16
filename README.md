@@ -285,7 +285,3 @@ linux/               Linux .desktop entry template
 MIT, see [LICENSE](LICENSE).
 
 ---
-
-<div align="center">
-<img src="https://api.star-history.com/svg?repos=voyb/aegis-vault&type=Date" alt="Star History Chart" width="100%" />
-</div>
