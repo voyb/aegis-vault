@@ -37,7 +37,7 @@ left behind if you delete the folder. First launch asks you to choose a
 master password, and you are in.
 
 <div align="center">
-<img src="social/demo.gif" width="100%" alt="Aegis: unlock, the account dashboard, typed credential profiles, the password generator, and the security page" />
+<img width="920" height="575" alt="Aegis: unlock, the account dashboard, typed credential profiles, the password generator, and the security page" src="https://github.com/user-attachments/assets/183a04fd-4722-45b6-a51a-c8c252806928" />
 </div>
 
 ## What it is
