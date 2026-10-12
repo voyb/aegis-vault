@@ -1,2 +1,11 @@
 *.sh text eol=lf
 *.py text eol=lf
+
+# Verified files must be byte-stable on every platform (autocrlf would otherwise break SHA256SUMS / the signed manifest)
+index.html text eol=lf
+SHA256SUMS text eol=lf
+*.manifest* -text
+vendor/* -text
+
+# One file for every OS: must stay LF so the sh part and the Python part both parse
+aegis-setup.cmd text eol=lf

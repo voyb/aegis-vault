@@ -22,7 +22,7 @@ a = Analysis(
     pathex=[],
     binaries=[],
     datas=[],
-    hiddenimports=[],
+    hiddenimports=["aegis_release"],
     hookspath=[],
     runtime_hooks=[],
     excludes=[],
@@ -53,6 +53,6 @@ if sys.platform == "darwin":
         bundle_identifier="dev.aegis.vault",
         info_plist={
             "NSHighResolutionCapable": True,
-            "CFBundleShortVersionString": "0.4.0",
+            "CFBundleShortVersionString": "0.9.0",
         },
     )

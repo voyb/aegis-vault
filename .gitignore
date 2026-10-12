@@ -17,3 +17,21 @@ Thumbs.db
 .token-optimizer/
 .claude/
 docs/
+
+# Browser profiles hold the encrypted vault (localStorage) and the device key (IndexedDB). NEVER commit them.
+profile/
+profile-webview/
+profile.bak*/
+.aci/
+tests/_*.mjs
+
+# Signing material and release state must never be committed
+release-key*
+*.pem
+*.key
+id_ed25519*
+.env
+release-state/
+*.manifest
+*.manifest.sig
+RELEASE.manifest*
