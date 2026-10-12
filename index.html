@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'wasm-unsafe-eval' 'sha256-3Oxhei4bcA+hMtFYOhhstwYRETOV6Gny3WzIK0FdMJQ=' 'sha256-2XydpgJEoaRRt+cOuo5gAPFcth9R7O1O4AD5EJlz1es=' 'sha256-s7YDfEhjf+OyOitBf+8DY3EHOZOel7uUhUnkdMKHFQc=' 'sha256-hQmQ+42Obk5uJtB4Oe2C+L6rxfoZDhLK/SN/c49s1fI='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; frame-src 'none'; worker-src 'none'; manifest-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'" />
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'wasm-unsafe-eval' 'sha256-3Oxhei4bcA+hMtFYOhhstwYRETOV6Gny3WzIK0FdMJQ=' 'sha256-2XydpgJEoaRRt+cOuo5gAPFcth9R7O1O4AD5EJlz1es=' 'sha256-CtaJMlpSoXG4cjAVTnaxEUm94+cOwo9SdF2pwJTIOqs=' 'sha256-58TKKNS5DjAATLYSgAf40Wz7j05q8SeGBtC/k5PAk7c='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; frame-src 'none'; worker-src 'none'; manifest-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>AEGIS Password Vault</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 3 5 6v5c0 4.5 3 7.5 7 9 4-1.5 7-4.5 7-9V6l-7-3Z' fill='%23020202' stroke='%23c9a86a' stroke-width='1.5'/%3E%3C/svg%3E" />
@@ -808,7 +808,7 @@ const ICN = {
   plus:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>',
   refresh:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg>',
   key:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="8" cy="15" r="4"/><path d="m10.8 12.2 8-8M18 6l2 2M15 9l2 2"/></svg>',
-  shield:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3 5 6v5c0 4.5 3 7.5 7 9 4-1.5 7-4.5 7-9V6l-7-3Z"/></svg>',
+  shield:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" stroke-linecap="round"><path d="M12 3 5 6v5c0 4.5 3 7.5 7 9 4-1.5 7-4.5 7-9V6l-7-3Z"/></svg>',
   down:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3v12M7 10l5 5 5-5M4 21h16"/></svg>',
   up:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 21V9M7 14l5-5 5 5M4 3h16"/></svg>',
   phone:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="6" y="2" width="12" height="20" rx="2.6"/><path d="M10.6 18.2h2.8" stroke-linecap="round"/></svg>',
@@ -1963,7 +1963,7 @@ async function unlock(){
       await openWithPassword(pw, isFirstRun);
       noteSuccess();
       // Verified beat is identical for the real vault and the mirage (fake)
-      // vault — same icon, same text, same delay — so success reveals nothing
+      // vault: same icon, same text, same delay, so success reveals nothing
       // about which password was entered. (One shared path, no DECOY branch.)
       showLockStatus('ok', 'Vault unlocked');
       await new Promise(r=>setTimeout(r, 450));
@@ -2900,7 +2900,7 @@ function openChangePw(){
       if(!sessionAlive(epoch)) return;
       if(!ok){ toast('Current password incorrect', 'err'); return; }
       if(!VMK){ toast('Vault state incomplete. Re-unlock and try again.', 'err'); return; }
-      // Derive new KEK (Argon2id preferred; PBKDF2 only if WASM unavailable — explicit, never silent)
+      // Derive new KEK (Argon2id preferred; PBKDF2 only if WASM unavailable, explicit and never silent)
       const salt = crypto.getRandomValues(new Uint8Array(16));
       let meta, key; const dk = await ensureDeviceKey(KEYNAME || DEV_REAL);
       if(await argonWorks()){
@@ -3060,99 +3060,1040 @@ const SMART_NOTE = 'Automatically classified by Smart Add';
    "sk-..." never becomes "OpenAI": Stripe and Anthropic share that prefix. */
 const SMART_PROVIDERS = [
   { id:'anthropic', label:'Claude API credential', aliases:['anthropic','claude'], platformKey:'anthropic', kind:'api_key', name:'Claude API Key',
-    sig:/sk-ant-[A-Za-z0-9_-]{8,}/, ctx:/anthropic|claude/i },
+    sig:/sk-ant-[A-Za-z0-9_-]{8,400}/, ctx:/anthropic|claude/i },
   { id:'stripe', label:'Stripe API key', aliases:['stripe'], platformKey:null, platName:'Stripe', kind:'api_key', name:'Stripe Key',
-    sig:/(?:sk|rk|pk)_(?:live|test)_[A-Za-z0-9]{8,}/, ctx:/stripe/i },
+    sig:/(?:sk|rk|pk)_(?:live|test)_[A-Za-z0-9]{8,400}/, ctx:/stripe/i },
   { id:'github', label:'GitHub token', aliases:['github'], platformKey:'github', kind:'api_key', name:'GitHub Token',
-    sig:/ghp_[A-Za-z0-9]{20,}|gho_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_-]{20,}/, ctx:/github/i },
+    sig:/gh[pousr]_[A-Za-z0-9]{20,400}|github_pat_[A-Za-z0-9_]{20,400}/, ctx:/github/i },
   { id:'aws', label:'AWS credential', aliases:['aws','amazon web services'], platformKey:null, platName:'AWS', kind:'api_key', name:'AWS Access Key',
-    sig:/AKIA[0-9A-Z]{16}/, ctx:/\baws\b|amazon|access.?key/i },
+    sig:/(?:AKIA|ASIA)[0-9A-Z]{16}/, ctx:/\baws\b|amazon web services|\baccess.?key/i },
   { id:'slack', label:'Slack token', aliases:['slack'], platformKey:'slack', kind:'api_key', name:'Slack Token',
-    sig:/xox[baprs]-[A-Za-z0-9-]{8,}/, ctx:/slack/i },
+    sig:/xox[baprs]-[A-Za-z0-9-]{8,400}/, ctx:/slack/i },
   { id:'google', label:'Google API key', aliases:['google','google cloud','gcp'], platformKey:'googlecloud', kind:'api_key', name:'Google API Key',
     sig:/AIza[0-9A-Za-z_-]{35}/, ctx:/google|gcp|google.?cloud/i },
   { id:'openai', label:'OpenAI API credential', aliases:['openai','chatgpt'], platformKey:'openai', kind:'api_key', name:'OpenAI API Key',
-    sig:/sk-(?:proj-)?[A-Za-z0-9_-]{20,}/, ctx:/openai|chatgpt/i },
+    sig:/sk-(?:proj-)?[A-Za-z0-9_-]{20,400}/, ctx:/openai|chatgpt/i },
 ];
+/* More providers, table driven: [id, label, key name, platform name, catalog key or null, signature, mention, options].
+   Only DISTINCTIVE signatures claim a provider. ctxOnly providers have no safe prefix: they are claimed solely when the
+   user names the provider next to a labelled secret. Open-ended quantifiers are capped so no signature can backtrack badly. */
+const SMART_NEVER = /(?!)/;
+const SMART_MORE = [
+  ['gitlab','GitLab token','GitLab Token','GitLab',null,/glpat-[A-Za-z0-9_-]{20,200}|gldt-[A-Za-z0-9_-]{20,200}/,/gitlab/i],
+  ['npm','npm token','npm Token','npm',null,/npm_[A-Za-z0-9]{36}/,/\bnpm\b/i],
+  ['sendgrid','SendGrid API key','SendGrid Key','SendGrid',null,/SG\.[A-Za-z0-9_-]{22}\.[A-Za-z0-9_-]{43}/,/sendgrid/i],
+  ['twilio','Twilio credential','Twilio Key','Twilio',null,/\b(?:AC|SK)[0-9a-f]{32}\b/,/twilio/i],
+  ['huggingface','Hugging Face token','Hugging Face Token','Hugging Face',null,/hf_[A-Za-z0-9]{34,200}/,/hugging ?face/i],
+  ['replicate','Replicate token','Replicate Token','Replicate',null,/r8_[A-Za-z0-9]{36,200}/,/replicate/i],
+  ['groq','Groq API key','Groq Key','Groq',null,/gsk_[A-Za-z0-9]{40,200}/,/\bgroq\b/i],
+  ['digitalocean','DigitalOcean token','DigitalOcean Token','DigitalOcean',null,/do[opr]_v1_[a-f0-9]{64}/,/digital ?ocean/i],
+  ['shopify','Shopify token','Shopify Token','Shopify',null,/shp(?:at|ca|pa|ss)_[a-f0-9]{32}/,/shopify/i],
+  ['notion','Notion token','Notion Token','Notion','notion',/ntn_[A-Za-z0-9]{40,200}|secret_[A-Za-z0-9]{43}\b/,/notion/i],
+  ['linear','Linear API key','Linear Key','Linear',null,/lin_api_[A-Za-z0-9]{40}/,/\blinear\b/i],
+  ['pypi','PyPI token','PyPI Token','PyPI',null,/pypi-[A-Za-z0-9_-]{50,400}/,/pypi/i],
+  ['discordbot','Discord bot token','Discord Bot Token','Discord','discord',/\b[MNO][A-Za-z0-9_-]{23,25}\.[A-Za-z0-9_-]{6}\.[A-Za-z0-9_-]{27,38}\b/,/discord/i],
+  ['discordhook','Discord webhook','Discord Webhook','Discord','discord',/https:\/\/(?:ptb\.|canary\.)?discord(?:app)?\.com\/api\/webhooks\/\d{17,20}\/[A-Za-z0-9_-]{60,120}/,/discord/i],
+  ['telegrambot','Telegram bot token','Telegram Bot Token','Telegram','telegram',/\b\d{8,10}:AA[A-Za-z0-9_-]{33}\b/,/telegram/i],
+  ['mailgun','Mailgun API key','Mailgun Key','Mailgun',null,/\bkey-[0-9a-f]{32}\b/,/mailgun/i],
+  ['mailchimp','Mailchimp API key','Mailchimp Key','Mailchimp',null,/\b[0-9a-f]{32}-us\d{1,2}\b/,/mailchimp/i],
+  ['cloudflare','Cloudflare token','Cloudflare Token','Cloudflare','cloudflare',/cf(?:ut|at)_[A-Za-z0-9]{30,200}/,/cloudflare/i],
+  ['supabase','Supabase key','Supabase Key','Supabase',null,/sbp_[a-f0-9]{40}|sb_secret_[A-Za-z0-9_-]{20,200}|sb_publishable_[A-Za-z0-9_-]{20,200}/,/supabase/i],
+  ['heroku','Heroku token','Heroku Token','Heroku',null,/HRKU-[A-Za-z0-9_-]{30,200}/,/heroku/i],
+  ['docker','Docker access token','Docker Token','Docker',null,/dckr_pat_[A-Za-z0-9_-]{20,200}/,/docker/i],
+  ['postman','Postman API key','Postman Key','Postman',null,/PMAK-[0-9a-f]{24}-[0-9a-f]{34}/,/postman/i],
+  ['figma','Figma token','Figma Token','Figma','figma',/figd_[A-Za-z0-9_-]{30,200}/,/figma/i],
+  ['airtable','Airtable token','Airtable Token','Airtable',null,/\bpat[A-Za-z0-9]{14}\.[a-f0-9]{64}\b/,/airtable/i],
+  ['stripehook','Stripe webhook secret','Stripe Webhook Secret','Stripe',null,/whsec_[A-Za-z0-9]{24,200}/,/stripe/i,{group:'stripe'}],
+  ['jwt','JSON Web Token','JSON Web Token','JWT',null,/\beyJ[A-Za-z0-9_-]{8,1500}\.eyJ[A-Za-z0-9_-]{8,1500}\.[A-Za-z0-9_-]{8,1500}/,/\bjwt\b|json web token/i],
+  ['azurestorage','Azure storage key','Azure Storage Key','Azure',null,/AccountKey=[A-Za-z0-9+\/]{40,200}={0,2}/,/azure/i],
+  ['firebase','Firebase server key','Firebase Server Key','Google Cloud','googlecloud',/AAAA[A-Za-z0-9_-]{7}:APA91b[A-Za-z0-9_-]{100,300}/,/firebase/i],
+  ['openrouter','OpenRouter API key','OpenRouter Key','OpenRouter',null,/sk-or-v1-[a-f0-9]{64}/,/openrouter/i],
+  ['perplexity','Perplexity API key','Perplexity Key','Perplexity',null,/pplx-[A-Za-z0-9]{40,200}/,/perplexity/i],
+  ['xai','xAI API key','xAI Key','xAI',null,/xai-[A-Za-z0-9]{60,200}/,/\bxai\b|\bgrok\b/i],
+  ['googleoauth','Google OAuth client secret','Google OAuth Secret','Google Cloud','googlecloud',/GOCSPX-[A-Za-z0-9_-]{20,200}/,/google/i],
+  ['googletoken','Google OAuth access token','Google Access Token','Google Cloud','googlecloud',/ya29\.[A-Za-z0-9_-]{30,400}/,/google/i],
+  ['meta','Meta access token','Meta Access Token','Facebook','facebook',/\bEAA[A-Za-z0-9]{60,300}/,/facebook|meta\b|instagram/i],
+  ['slackhook','Slack webhook','Slack Webhook','Slack','slack',/https:\/\/hooks\.slack\.com\/services\/T[A-Z0-9]{8,20}\/B[A-Z0-9]{8,20}\/[A-Za-z0-9]{20,60}/,/slack/i],
+  ['sentry','Sentry token','Sentry Token','Sentry',null,/sntrys_[A-Za-z0-9+\/=_-]{50,400}/,/sentry/i],
+  ['sentrydsn','Sentry DSN','Sentry DSN','Sentry',null,/https:\/\/[a-f0-9]{32}@[A-Za-z0-9.-]{1,100}sentry\.io\/\d{1,12}/,/sentry/i,{group:'sentry'}],
+  ['newrelic','New Relic API key','New Relic Key','New Relic',null,/NRAK-[A-Z0-9]{27}/,/new ?relic/i],
+  ['grafana','Grafana token','Grafana Token','Grafana',null,/glc_[A-Za-z0-9+\/=_-]{30,300}|glsa_[A-Za-z0-9]{32}_[a-f0-9]{8}/,/grafana/i],
+  ['vault','HashiCorp Vault token','Vault Token','HashiCorp',null,/hvs\.[A-Za-z0-9_-]{24,200}/,/vault|hashicorp/i],
+  ['terraform','Terraform Cloud token','Terraform Token','HashiCorp',null,/\b[A-Za-z0-9]{14}\.atlasv1\.[A-Za-z0-9_-]{60,200}/,/terraform|hashicorp/i,{group:'hashicorp'}],
+  ['databricks','Databricks token','Databricks Token','Databricks',null,/\bdapi[a-f0-9]{32}\b/,/databricks/i],
+  ['netlify','Netlify token','Netlify Token','Netlify',null,/nfp_[A-Za-z0-9]{36}/,/netlify/i],
+  ['render','Render API key','Render Key','Render',null,/rnd_[A-Za-z0-9]{32}/,/\brender\b/i],
+  ['atlassian','Atlassian API token','Atlassian Token','Atlassian',null,/ATATT3[A-Za-z0-9_=-]{50,400}|ATBB[A-Za-z0-9_=.-]{30,200}/,/atlassian|jira|bitbucket|confluence/i],
+  ['dropbox','Dropbox access token','Dropbox Token','Dropbox','dropbox',/\bsl\.[A-Za-z0-9_-]{130,400}/,/dropbox/i],
+  ['plaid','Plaid access token','Plaid Token','Plaid',null,/access-(?:sandbox|development|production)-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/,/plaid/i],
+  ['pinecone','Pinecone API key','Pinecone Key','Pinecone',null,/pcsk_[A-Za-z0-9_]{50,300}/,/pinecone/i],
+  ['doppler','Doppler token','Doppler Token','Doppler',null,/dp\.(?:pt|st|sa|ct|scim|audit)\.[A-Za-z0-9]{40,200}/,/doppler/i],
+  ['rubygems','RubyGems API key','RubyGems Key','RubyGems',null,/rubygems_[a-f0-9]{48}/,/rubygems/i],
+  ['square','Square token','Square Token','Square',null,/sq0(?:atp|csp)-[A-Za-z0-9_-]{22,100}/,/square/i],
+  ['datadog','Datadog API key','Datadog Key','Datadog',null,SMART_NEVER,/datadog|\bdd_api/i,{ctxOnly:true}],
+  ['vercel','Vercel token','Vercel Token','Vercel',null,SMART_NEVER,/vercel/i,{ctxOnly:true}],
+  ['mistral','Mistral API key','Mistral Key','Mistral',null,SMART_NEVER,/mistral/i,{ctxOnly:true}],
+  ['cohere','Cohere API key','Cohere Key','Cohere',null,SMART_NEVER,/cohere/i,{ctxOnly:true}],
+  ['pagerduty','PagerDuty key','PagerDuty Key','PagerDuty',null,SMART_NEVER,/pagerduty/i,{ctxOnly:true}],
+  ['algolia','Algolia API key','Algolia Key','Algolia',null,SMART_NEVER,/algolia/i,{ctxOnly:true}],
+  ['twiliotoken','Twilio auth token','Twilio Auth Token','Twilio',null,SMART_NEVER,/twilio/i,{ctxOnly:true,group:'twilio'}],
+  ['zoomkey','Zoom credential','Zoom Key','Zoom','zoom',SMART_NEVER,/\bzoom\b/i,{ctxOnly:true}],
+];
+{
+  const at = SMART_PROVIDERS.findIndex(p => p.id === 'openai');
+  const made = SMART_MORE.map(r => Object.assign({ id:r[0], label:r[1], aliases:[], name:r[2], platName:r[3], platformKey:r[4], kind:'api_key', sig:r[5], ctx:r[6], group:null, ctxOnly:false }, r[7] || {}));
+  SMART_PROVIDERS.splice(at, 0, ...made);   /* specific prefixes must be tried before the generic sk- one */
+  for(const p of SMART_PROVIDERS){ p.gsig = new RegExp(p.sig.source, 'g'); }
+}
 const SMART_SIG_PRIVKEY = /-----BEGIN (?:OPENSSH )?PRIVATE KEY-----/;
 const SMART_SIG_CONNSTR = /(postgres(?:ql)?|mysql|mariadb|mongodb(?:\+srv)?|redis):\/\/[^\s<>"']{4,300}/i;
-const SMART_RE_EMAIL = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/;
 const SMART_RE_URL = /https?:\/\/[^\s<>"']{4,200}/;
 const SMART_RE_HOST = /\bhost(?:name)?\s*[:=]?\s*([A-Za-z0-9.-]{2,253})/i;
 const SMART_RE_PORT = /\bport\s*[:=]?\s*(\d{2,5})/i;
-const SMART_RE_USER = /\buser(?:name)?\s*[:=]\s*([^\n,;]{1,200})/i;
-const SMART_RE_PASS = /\bpassw(?:ord|d)|passwd|\bpwd\b|\bsecret\b/;
-const SMART_RE_WIFI = /\bwi-?fi\b|\bssid\b|\bnetwork(?: name)?\b/i;
+const SMART_RE_PASS = /\bpassw(?:ord|d)|passwd|\bpwd\b|\bsecret\b/i;
+const SMART_RE_WIFI = /\bwi-?fi\b|\bssid\b|\bnetwork(?: name)?\b|\bwlan\b/i;
 const SMART_RE_DB = /\bpostgres(?:ql)?\b|\bmysql\b|\bmariadb\b|\bmongo(?:db)?\b|\bredis\b|\bsqlite\b|\bdatabase\b|\bconnection string\b/i;
 const SMART_RE_SSH = /\bssh\b|private key|public key/i;
 const SMART_RE_ENGINE = /\b(postgres(?:ql)?|mysql|mariadb|mongodb|redis|sqlite)\b/i;
 const SMART_RE_SAVEAS = /sav(?:e|ing)(?: this| it| this server)? as ([A-Za-z0-9][A-Za-z0-9 _.-]{1,60})/i;
 const SMART_RE_APILABEL = /\bapi[_-]?key\b|\bsecret[_-]?key\b|\bbearer\b|\baccess[_-]?token\b/i;
+/* ---------- small text helpers (all linear, no regex that can backtrack on a long run) ---------- */
+const SMART_TRIM_LEAD = '"\'`=:‘’‚‛“”„«»‹›';
+const SMART_TRIM_TRAIL = '"\'`.,;)‘’‚‛“”„«»‹›';
+function smartIsWs(c){ return c === ' ' || c === '\t' || c === '\n' || c === '\r' || c === '\f' || c === '\v' || /\s/.test(c); }
 function smartClean(v){
   let s = String(v == null ? '' : v);
-  s = s.replace(/^[\s"'`=:]+/, '').replace(/[\s"'`.,;)]+$/, '');
+  if(s.length > 9000) s = s.slice(0, 9000);
+  let a = 0, b = s.length;
+  while(a < b && (smartIsWs(s.charAt(a)) || SMART_TRIM_LEAD.indexOf(s.charAt(a)) >= 0)) a++;
+  while(b > a && (smartIsWs(s.charAt(b - 1)) || SMART_TRIM_TRAIL.indexOf(s.charAt(b - 1)) >= 0)) b--;
+  s = s.slice(a, b);
   if(s.length > 8000) s = s.slice(0, 8000);
   return s;
 }
-function smartChunkSignal(c){
-  for(const p of SMART_PROVIDERS){ p.sig.lastIndex = 0; if(p.sig.test(c)) return true; }
-  if(SMART_SIG_PRIVKEY.test(c) || SMART_SIG_CONNSTR.test(c)) return true;
-  if(SMART_RE_APILABEL.test(c) || SMART_RE_WIFI.test(c) || SMART_RE_DB.test(c)) return true;
-  if(SMART_RE_EMAIL.test(c) && SMART_RE_PASS.test(c)) return true;
-  if(SMART_RE_HOST.test(c) && (SMART_RE_USER.test(c) || SMART_RE_PASS.test(c))) return true;
+function smartTrimPunct(s){
+  let a = 0, b = s.length;
+  const P = '.,:;!?)(]["\'`';
+  while(a < b && P.indexOf(s.charAt(a)) >= 0) a++;
+  while(b > a && P.indexOf(s.charAt(b - 1)) >= 0) b--;
+  return s.slice(a, b);
+}
+const SMART_ACRO = { api:'API', url:'URL', uri:'URI', db:'DB', aws:'AWS', id:'ID', ssh:'SSH', jwt:'JWT', sql:'SQL', dsn:'DSN', pat:'PAT', gcp:'GCP', ci:'CI', ai:'AI', sdk:'SDK', oauth:'OAuth', totp:'TOTP', tls:'TLS', smtp:'SMTP', s3:'S3', sso:'SSO', ip:'IP', vpn:'VPN', npm:'npm', pypi:'PyPI', ftp:'FTP', gpt:'GPT', cdn:'CDN', ses:'SES', sns:'SNS', sqs:'SQS', mfa:'MFA', otp:'OTP', rsa:'RSA', env:'Env' };
+function smartTitle(s){
+  const words = String(s == null ? '' : s).split(/[_\-\s.]+/).filter(Boolean).slice(0, 8);
+  return words.map(w => { const l = w.toLowerCase(); return SMART_ACRO[l] || (l.charAt(0).toUpperCase() + l.slice(1)); }).join(' ');
+}
+function smartEdit1(a, b){
+  if(a === b) return true;
+  const la = a.length, lb = b.length;
+  if(Math.abs(la - lb) > 1) return false;
+  let i = 0; while(i < la && i < lb && a.charAt(i) === b.charAt(i)) i++;
+  if(la === lb){
+    if(a.slice(i + 1) === b.slice(i + 1)) return true;
+    return a.charAt(i) === b.charAt(i + 1) && a.charAt(i + 1) === b.charAt(i) && a.slice(i + 2) === b.slice(i + 2);
+  }
+  return la > lb ? a.slice(i + 1) === b.slice(i) : a.slice(i) === b.slice(i + 1);
+}
+function smartEntropy(s){
+  const n = s.length; if(!n) return 0;
+  const c = Object.create(null);
+  for(let i = 0; i < n; i++){ const ch = s.charAt(i); c[ch] = (c[ch] || 0) + 1; }
+  let h = 0; for(const k in c){ const p = c[k] / n; h -= p * Math.log2(p); }
+  return h;
+}
+/* Never flags hashes, UUIDs, plain words, paths or URLs. Returns {token,bits,length} or null. */
+function smartLooksSecret(tok){
+  const s = String(tok == null ? '' : tok);
+  if(s.length < 20 || s.length > 300) return null;
+  if(!/^[A-Za-z0-9_\-+\/=.~]+$/.test(s)) return null;
+  if(/^[0-9a-f]{7,64}$/i.test(s)) return null;
+  if(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s)) return null;
+  if(s.indexOf('/') >= 0 && (/^\/|\/\/|\.[A-Za-z]{2,5}$/.test(s))) return null;
+  if(/^v?\d+(?:\.\d+){2,}/.test(s)) return null;
+  let up = 0, lo = 0, dg = 0, sy = 0;
+  for(let i = 0; i < s.length; i++){
+    const c = s.charCodeAt(i);
+    if(c >= 65 && c <= 90) up++; else if(c >= 97 && c <= 122) lo++; else if(c >= 48 && c <= 57) dg++; else sy++;
+  }
+  const classes = (up > 0 ? 1 : 0) + (lo > 0 ? 1 : 0) + (dg > 0 ? 1 : 0) + (sy > 0 ? 1 : 0);
+  if(classes < 3 || dg === 0) return null;
+  const bits = smartEntropy(s);
+  if(bits < (s.length >= 32 ? 3.9 : 3.6)) return null;
+  return { token:s, bits, length:s.length };
+}
+function smartWords(t, cap){ return String(t == null ? '' : t).split(/[\s,;()<>"'`\[\]{}]+/).slice(0, cap || 600); }
+function smartFindHighEntropy(t){
+  let best = null;
+  for(let tok of smartWords(t, 600)){
+    if(tok.length < 20) continue;
+    const e = tok.match(/^[A-Za-z_][A-Za-z0-9_.-]{0,40}[=:](.{16,300})$/);
+    if(e) tok = e[1];
+    const r = smartLooksSecret(tok);
+    if(r && (!best || r.bits > best.bits)) best = r;
+  }
+  return best;
+}
+/* Emails by walking out from each @ (bounded), instead of one regex that is quadratic on a long run of address characters. */
+function smartFindEmails(text, max){
+  const t = String(text == null ? '' : text), out = [];
+  const L = /[A-Za-z0-9._%+-]/, D = /[A-Za-z0-9.-]/;
+  let i = t.indexOf('@'), guard = 0;
+  while(i >= 0 && out.length < (max || 5) && guard++ < 400){
+    let a = i; while(a > 0 && i - a < 64 && L.test(t.charAt(a - 1))) a--;
+    let b = i + 1; while(b < t.length && b - i < 255 && D.test(t.charAt(b))) b++;
+    const local = t.slice(a, i);
+    let dom = t.slice(i + 1, b);
+    let e = dom.length; while(e > 0 && (dom.charAt(e - 1) === '.' || dom.charAt(e - 1) === '-')) e--;
+    dom = dom.slice(0, e);
+    if(local && dom.length <= 253 && /^[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}$/.test(dom)) out.push(local + '@' + dom);
+    i = t.indexOf('@', i + 1);
+  }
+  return out;
+}
+/* ================= label dictionary: compiled ONCE from arrays, matched by lookup (no per-alias regex) =================
+   A label is lower-cased, '@' and '$' read as letters (p@ss, pa$$word), every non-alphanumeric dropped ("p/w", "e-mail",
+   "pass code", "api_key" all collapse), and digits read as letters only as a second try (pw0rd, pa55word). Typos within
+   one edit of a long alias also match (pasword, passsword, passwrd, pssword). */
+const SMART_ALIASES = {
+  password: ['password','passwd','passw','pass','pw','pwd','pswd','pswrd','psw','pword','p/w','passcode','pass code','passphrase','pass phrase','secret','key phrase','keyphrase','pass word','pass-word','pass key','passkey','p@ss','p@ssword','pasword','passsword','passwrd','pssword','pw0rd','pa55word','pa$$word','wifi pw','wifi pass','wifi password','wifi key','wpa key','wpa password','wpa2 key','wpa2 password','wlan key','wlan password','router password','router pw','master password','login password','account password','email password','mail password','user password','admin password','root password','db password','database password','passwort','contrasena','motdepasse','senha','parola','kennwort','login pw','email pw','account pw','creds password','access code','unlock code'],
+  username: ['login username','login_username','login user','username','user name','user-name','user','usr','usrname','uname','u/n','un','login','log in','logon','log on','login name','loginname','login id','logon id','id','userid','user id','handle','account','acct','acc','account name','account id','nick','nickname','nick name','screen name','screenname','gamertag','gamer tag','signin as','sign in as','sign in with','signed in as','logged in as','logged on as','login as','log in as','logon as','member','member id','memberid','customer id','profile','steam id','discord tag','user login','admin','admin user','admin username','root user','u','usr name','user nm','usernm','username/email','email/username','login/email','email/login','userlogin'],
+  email: ['email','e-mail','mail','em','eml','email address','e-mail address','emailaddress','mail address','email id','emailid','gmail','emial','emal','imail','e mail','electronic mail','contact email','login email','account email','user email','work email','personal email'],
+  url: ['site','website','web','url','link','domain','webpage','web site','web page','login url','login page','signin url','sign in url','sign in page','portal','homepage','home page','base url','baseurl','go to','goto','visit','at','uri','login uri','loginuri','login_uri','address','webaddress','web address','site url','siteurl'],
+  host: ['server','host','hostname','host name','ip','ip addr','ip address','ipaddr','endpoint','server address','remote','remote host','machine','target','node','box','vps','hostaddr','server ip','server name','servername','db host','database host'],
+  port: ['port','prt','port number','port no','ssh port','db port','database port'],
+  apikey: ['security key','network key','wireless key','encryption key','api key','apikey','api-key','api_key','api token','apitoken','access key','accesskey','app key','appkey','api','license key','public key id','x api key','xapikey','key','access token key','service key','project key'],
+  keyid: ['key id','keyid','access key id','accesskeyid','aws access key id','access id','app id','appid','api id','client id','clientid','consumer key','sid','account sid','accountsid','application id','tenant id','project id','key name'],
+  secret: ['secret key','secretkey','secret access key','secretaccesskey','client secret','clientsecret','consumer secret','api secret','apisecret','app secret','appsecret','signing secret','webhook secret','shared secret','secret token','private key id'],
+  token: ['token','bearer','auth','authorization','auth token','authtoken','access token','accesstoken','refresh token','refreshtoken','id token','idtoken','bearer token','pat','personal access token','session token','jwt','oauth token','oauth','x auth token','private token','api bearer','auth key','authkey','auth code'],
+  scopes: ['scopes','scope','permissions','permission','access scopes','token scopes','oauth scopes'],
+  remail: ['recovery email','backup email','alt email','alternate email','secondary email','recovery mail','rescue email','alt mail','backup mail'],
+  webhook: ['webhook','webhook url','hook','hook url','webhookurl'],
+  license: ['license','licence','serial','serial number','serial no','serial key','product key','activation code','activation key','cd key','cdkey','registration code','reg code','license key','licence key','key code','license code','licence code','reg key','registration key','install key','unlock key'],
+  recovery: ['recovery code','recovery codes','backup code','backup codes','backup key','reset code','emergency code','rescue code','recovery key','recovery phrase','seed phrase','seed','mnemonic','secret phrase'],
+  otp: ['login totp','login_totp','2fa','otp','totp','two factor','two-factor','2fa secret','2fa code','2fa key','authenticator','authenticator key','authenticator secret','mfa','mfa secret','mfa key','setup key','otp secret','totp secret','2 step','2-step','two step','two step key','otp key'],
+  question: ['security question','secret question','sq','recovery question','question','security q','secret q'],
+  answer: ['answer','security answer','secret answer','security question answer','sa','recovery answer','answer to security question','security a','secret a'],
+  pin: ['pin','pin code','pincode','pin number','atm pin','sim pin','phone pin','card pin','code','the code','lock code','door code','gate code','unlock pin'],
+  dbname: ['database','db','dbname','db name','database name','schema','default database','initial database'],
+  dbextra: ['table','collection','keyspace','bucket','index'],
+  ssid: ['ssid','network','network name','wifi','wi-fi','wlan','wifi name','wi-fi name','wlan name','router','wifi network','wireless','wireless network','access point','ap name','netname'],
+  name: ['name','title','site name','account label','label','entry','item'],
+  pair: ['creds','credentials','cred','logins','user/pass','login details','login info','login credentials','userpass','user pass','username/password','u/p','email/password','email pass','login/pass','login/password','id/pw','id/password','user/pw','email/pw','combo','account details','account info','access details'],
+  notes: ['note','notes','comment','comments','extra','memo','description','remarks','info'],
+};
+/* labels that are common English: only honored with an explicit separator (colon, equals, arrow, pipe, dash) or "is" after a determiner */
+const SMART_WEAK_LIST = ['combo','up','p','u','un','id','em','acc','acct','account','handle','nick','profile','member','at','web','link','address','server','network','router','wifi','wi-fi','wlan','wireless','code','the code','key','api','auth','sid','pin','name','title','table','schema','index','bucket','answer','question','sq','sa','domain','site','target','remote','machine','node','box','login','log in','logon','mail','info','extra','label','entry','item','hook','seed','oauth','visit','goto','go to','access point','description','default database','collection','user','usr','admin','secret','ip','host','port','db','database','sign in with','license','licence','serial','email','e-mail','username','user name'];
+/* weak only when the label is NOT one of the plainly-labelling words; strong ones (password, pass, pw, username, email, ...) may take a plain space */
+const SMART_STRONG_PLAIN = ['password','passwd','passw','pass','pw','pwd','pswd','pswrd','psw','pword','passcode','passphrase','pass word','username','user name','usrname','uname','usr','user','userid','user id','email','e-mail','eml','email address','ssid','hostname','host','token','bearer','apikey','api key','api-key','api_key','access key','secret key','client secret','client id','license key','product key','activation code','recovery code','backup code','totp','otp','2fa','database','dbname','wifi password','wifi pass','wifi pw','wpa key','wpa password','router password','mail address','login password'];
+const SMART_LABELS = new Map(), SMART_WEAK = new Set(), SMART_FUZZY = [];
+let SMART_ALIAS_COUNT = 0;
+function smartCompact(s, leet){
+  let o = '';
+  const str = String(s == null ? '' : s).toLowerCase();
+  for(let i = 0; i < str.length && i < 60; i++){
+    let c = str.charAt(i);
+    if(c === '@') c = 'a'; else if(c === '$') c = 's';
+    if(leet){ if(c === '0') c = 'o'; else if(c === '1') c = 'i'; else if(c === '3') c = 'e'; else if(c === '4') c = 'a'; else if(c === '5') c = 's'; else if(c === '7') c = 't'; }
+    if((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c === '/') o += c;      // a slash stays: "email/password" is a pair label, "email password" is just a password label
+  }
+  return o;
+}
+{
+  const strong = new Set(SMART_STRONG_PLAIN.map(x => smartCompact(x)));
+  for(const canon of Object.keys(SMART_ALIASES)){
+    for(const a of SMART_ALIASES[canon]){
+      const c = smartCompact(a); if(!c) continue;
+      SMART_ALIAS_COUNT++;
+      if(!SMART_LABELS.has(c)) SMART_LABELS.set(c, canon);
+      if(c.length >= 6 && SMART_FUZZY.length < 80 && /^[a-z]+$/.test(c)) SMART_FUZZY.push([c, canon]);
+    }
+  }
+  for(const w of SMART_WEAK_LIST){ const c = smartCompact(w); if(!strong.has(c)) SMART_WEAK.add(c); }
+  for(const w of ['p','u','un','id','em','acc','acct','account','handle','nick','at','web','link','address','code','key','api','auth','sid','name','title','table','schema','index','bucket','answer','question','sq','sa','domain','site','target','remote','machine','node','box','login','mail','info','extra','label','entry','item','hook','seed','oauth','visit','goto','profile','member','admin','server','network','router','wifi','wlan','wireless','description','collection','secret','ip','port','db','license','licence','serial','pin','the code','user','usr','email','username']){ if(!strong.has(smartCompact(w))) SMART_WEAK.add(smartCompact(w)); }
+}
+let SMART_FUZZY_BUDGET = 0, SMART_WIFI_NOW = false;
+function smartLabelCanon(raw, allowFuzzy){
+  const c = smartCompact(raw, false);
+  if(!c) return null;
+  let canon = SMART_LABELS.get(c);
+  if(canon) return { canon, key:c };
+  if(/[0-9]/.test(c)){ const l = smartCompact(raw, true); canon = SMART_LABELS.get(l); if(canon) return { canon, key:l }; }
+  if(allowFuzzy && SMART_FUZZY_BUDGET-- > 0 && c.length >= 5 && c.length <= 16 && /^[a-z]+$/.test(c)){
+    for(const [k, cn] of SMART_FUZZY){ if(smartEdit1(c, k)) return { canon:cn, key:k, fuzzy:true }; }
+  }
+  return null;
+}
+const SMART_SEP_CHUNKS = new Set([':','=','->','=>','|','-','→','>','=:',':-','⇒','--','>>']);
+const SMART_COPULA = new Set(['is','was','are','=','equals','be','called','named']);
+const SMART_DET = new Set(['the','my','your','its','our','his','her','their','a','new','old','this','that']);
+const SMART_CONJ = new Set(['and','&','plus','also','with','then','or','+']);
+const SMART_STOPW = new Set(['for','on','from','at','because','since','but','so','when','which','that','where','while','until','after','before','about','via','using']);
+const SMART_QUOTES = '"\'`‘’‚‛“”„«»‹›';
+const SMART_CLOSERS = { '"':'"', "'":"'", '`':'`', '‘':'’', '’':'’', '‚':'’', '‛':'’', '“':'”', '”':'”', '„':'”', '«':'»', '‹':'›' };
+const SMART_SINGLE_TOKEN = new Set(['username','email','url','host','port','apikey','keyid','secret','token','webhook','license','recovery','otp','pin','dbname','dbextra','license','remail']);
+/* ---- text preparation: strips everything that is formatting, never a character that could be part of a secret ---- */
+const SMART_EMOJI_LABELS = [['\u{1F511}','password:'],['\u{1F510}','password:'],['\u{1F512}','password:'],['\u{1F5DD}','password:'],['\u{1F464}','username:'],['\u{1F9D1}','username:'],['\u{1F4E7}','email:'],['✉','email:'],['\u{1F4E9}','email:'],['\u{1F4E8}','email:'],['\u{1F310}','url:'],['\u{1F517}','url:'],['\u{1F5A5}','host:'],['\u{1F4F6}','wifi:'],['\u{1F522}','pin:']];
+function smartPrep(text, keepTabs){
+  let t = String(text == null ? '' : text);
+  if(t.length > SMART_MAX_INPUT * 2) t = t.slice(0, SMART_MAX_INPUT * 2);
+  t = t.replace(/[​‌‍⁠﻿­‎‏‪-‮]/g, '');           // zero-width and bidi marks
+  t = t.replace(/[   -   　]/g, ' ');                               // exotic spaces
+  t = t.replace(/：/g, ':').replace(/＝/g, '=').replace(/⇒/g, '=>').replace(/[‒-―−]/g, '-');
+  t = t.replace(/\r\n?/g, '\n').replace(/️/g, '');
+  for(const [e, l] of SMART_EMOJI_LABELS){ if(t.indexOf(e) >= 0) t = t.split(e).join(' ' + l + ' '); }
+  const lines = t.split('\n', 3000);
+  for(let i = 0; i < lines.length; i++){
+    let ln = lines[i];
+    if(ln.length > 4000) ln = ln.slice(0, 4000);
+    let a = 0; while(a < ln.length && a < 12 && (ln.charAt(a) === ' ' || ln.charAt(a) === '\t' || ln.charAt(a) === '>')) a++;      // indent, quote markers
+    const m = ln.slice(a, a + 8).match(/^(?:[-*•▪◦‣+]|\d{1,3}[.)])\s+/);
+    if(m) a += m[0].length;
+    ln = ln.slice(a);
+    if(ln.length > 4 && ((ln.slice(0, 2) === '**' && ln.slice(-2) === '**') || (ln.slice(0, 2) === '__' && ln.slice(-2) === '__'))) ln = ln.slice(2, -2);
+    else if(ln.length > 2 && ln.charAt(0) === '`' && ln.charAt(ln.length - 1) === '`') ln = ln.slice(1, -1);
+    else if(ln.indexOf('**') >= 0 || ln.indexOf('__') >= 0 || ln.indexOf('`') >= 0){
+      ln = ln.replace(/(^|\s)(?:\*\*|__)([^*_\s][^*_\n]{0,298}?)(?:\*\*|__)(?=\s|$|[.,;:!?])/g, '$1$2').replace(/(^|\s)`([^`\n]{1,400})`(?=\s|$|[.,;:!?])/g, '$1$2');
+    }
+    lines[i] = keepTabs ? ln : ln.replace(/\t+/g, ' : ');                                              // a tab between a label and a value is a separator
+  }
+  return lines.join('\n');
+}
+const SMART_ISIP = /^(?:25[0-5]|2[0-4]\d|1?\d?\d)(?:\.(?:25[0-5]|2[0-4]\d|1?\d?\d)){3}$/;
+const SMART_TLDS = new Set(['com','net','org','io','dev','app','co','gg','tv','me','ai','xyz','info','biz','us','uk','de','fr','ca','au','nl','se','no','fi','es','it','ru','jp','cn','in','br','mx','ch','at','be','pl','cz','pt','ie','nz','za','kr','tw','hk','sg','edu','gov','cloud','site','online','tech','store','shop','live','chat','link','zone','run','sh','so','to','cc','ly','fm','im','is','gl','ws','vip','pro','wtf','example','local','internal','lan','home','test']);
+function smartLooksHost(v){
+  const s = String(v || '');
+  if(!s || s.length > 300) return false;
+  if(/^[a-z][a-z0-9+.-]{1,12}:\/\//i.test(s)) return true;
+  const h = s.replace(/^www\./i, '').replace(/[\/:?#].*$/, '');
+  if(SMART_ISIP.test(h) || h.toLowerCase() === 'localhost') return true;
+  const m = /^(?:[A-Za-z0-9][A-Za-z0-9-]*\.)+([A-Za-z]{2,24})$/.exec(h);
+  return !!(m && SMART_TLDS.has(m[1].toLowerCase()));
+}
+function smartShapeOk(canon, v){
+  const s = String(v || '');
+  if(!s) return false;
+  if(canon === 'email') return s.indexOf('@') > 0 && smartFindEmails(s, 1).length === 1;
+  if(canon === 'url') return smartLooksHost(s);
+  if(canon === 'host') return smartLooksHost(s) || /^[A-Za-z0-9][A-Za-z0-9._-]{1,62}(?::\d{1,5})?$/.test(s);
+  if(canon === 'port') return /^\d{1,5}$/.test(s) && Number(s) >= 1 && Number(s) <= 65535;
+  if(canon === 'pin') return /\d/.test(s) && s.length <= 64;
+  if(canon === 'place') return s.length <= 60;
+  if(canon === 'ssid') return s.length <= 64 && !/^(?:is|was|are|the|a|an|at|in|my|our|called|named|name|for|and|or|to|of|password|pass|pw)$/i.test(s);
+  if(canon === 'username') return s.length <= 200 && !/^(?:is|was|are|the|a|an|my|our|your|and|or|for|to|of|at|in|on|as|with|name|password|pass|pw|email|login|user)$/i.test(s);
+  if(canon === 'password') return !/^(?:is|was|are|the|a|an|my|our|your|and|or|for|to|of|at|in|on|as|with|here|below|above|same|this|that|it|then|now)$/i.test(s);
+  return true;
+}
+/* ---- the scanner: finds "label SEP value" in every layout that fits on a line, plus label-on-one-line / value-on-the-next ---- */
+function smartMatchLabel(ch, i){
+  for(let n = 3; n >= 1; n--){
+    if(i + n > ch.length) continue;
+    let last = ch[i + n - 1], sep = '', rest = '', ok = true;
+    let idx = -1, sl = 0;
+    for(const s of ['->','=>',':-','→',':','=','|']){ const k = last.indexOf(s); if(k >= 0 && (idx < 0 || k < idx)){ idx = k; sl = s.length; sep = s; } }
+    let core = last;
+    if(idx >= 0){ core = last.slice(0, idx); rest = last.slice(idx + sl); }
+    { let a0 = 0, b0 = core.length; while(a0 < b0 && SMART_QUOTES.indexOf(core.charAt(a0)) >= 0) a0++; while(b0 > a0 && SMART_QUOTES.indexOf(core.charAt(b0 - 1)) >= 0) b0--; core = core.slice(a0, b0); }
+    for(let k = 0; k < n - 1; k++){ const w = ch[i + k].replace(/^["'\u2018\u201c]+|["'\u2019\u201d]+$/g, ''); if(!/^[A-Za-z0-9@$\/._'-]{1,24}$/.test(w) || /[:=|]/.test(w) || SMART_SEP_CHUNKS.has(w)){ ok = false; break; } }
+    if(!ok) continue;
+    if(core === '' && n === 1) continue;
+    if(idx >= 0 && core !== '' && !/[A-Za-z0-9]/.test(core)) continue;     // "_=secret": punctuation before the equals sign is part of a value, not a label
+    if(idx < 0 && SMART_SEP_CHUNKS.has(last)) continue;
+    if(!/^[A-Za-z0-9@$\/._'-]{0,24}$/.test(core)) continue;
+    if(n > 1 && (core.length < 2 || ch.slice(i, i + n - 1).some(w => w.length < 2))) continue;     // "pw d=abc" must not fuse into the label "pwd"
+    const text = (n > 1 ? ch.slice(i, i + n - 1).join(' ') + ' ' : '') + core;
+    const r = smartLabelCanon(text, n === 1 && (!!sep || (ch[i + n] !== undefined && (SMART_SEP_CHUNKS.has(ch[i + n]) || SMART_COPULA.has(ch[i + n].toLowerCase())))));
+    if(r && r.key.length === 1 && !(sep && rest === '')) continue;        // single letters (u:, p:) only as a bare "u:" followed by the value, never inside "U=abc123"
+    if(r) return { canon:r.canon, key:r.key, n, sep, rest, weak:SMART_WEAK.has(r.key), fuzzy:!!r.fuzzy, label:text };
+  }
+  return null;
+}
+function smartIsLabelHere(ch, k){
+  const L = smartMatchLabel(ch, k);
+  if(!L) return false;
+  if(SMART_WIFI_NOW && SMART_WIFI_PW_KEYS.has(L.key) && ch[k + L.n] !== undefined) return true;      // in a Wi-Fi paste "key" and friends are labels
+  if(L.sep) return true;
+  const nx = ch[k + L.n];
+  if(nx !== undefined && (SMART_SEP_CHUNKS.has(nx) || (SMART_COPULA.has(nx.toLowerCase()) && !L.weak))) return true;
+  return !L.weak && nx !== undefined;
+}
+function smartStopHere(ch, k){
+  const w = ch[k], lw = w.toLowerCase();
+  if(SMART_STOPW.has(lw)) return true;
+  if(/^\d{1,2}[.)]$/.test(w) || w.charAt(0) === '(') return true;      // "1) user 2) pass" and "pw is x (old: y)"
+  if(SMART_CONJ.has(lw)){
+    if(smartIsLabelHere(ch, k + 1)) return true;
+    if(ch[k + 1] !== undefined && SMART_DET.has(ch[k + 1].toLowerCase()) && smartIsLabelHere(ch, k + 2)) return true;
+    return false;
+  }
+  if((SMART_SEP_CHUNKS.has(w) || w === '/' || w === '\\') && smartIsLabelHere(ch, k + 1)) return true;
+  return smartIsLabelHere(ch, k);
+}
+function smartUnquote(ch, from){
+  const first = ch[from];
+  if(!first) return null;
+  const close = SMART_CLOSERS[first.charAt(0)];
+  if(!close) return null;
+  let acc = '';
+  for(let k = from; k < ch.length && k < from + 14; k++){
+    acc += (k > from ? ' ' : '') + ch[k];
+    const e = acc.indexOf(close, 1);
+    if(e > 0) return { value:acc.slice(1, e), next:k + 1 };
+  }
+  return null;
+}
+const SMART_PLACEHOLDER = /^(?:changeme|change[_-]me|your[-_a-z0-9]*|x{3,}|\*{3,}|<[^>]*>|\$\{[^}]*\}|todo|none|null|undefined|example.*|placeholder|replace.*|\.{3,}|_{3,}|token|api[_-]?key|secret)$/i;
+const SMART_COMMON = new Set(['the','a','an','is','are','was','be','can','will','to','of','in','on','at','for','and','or','but','not','no','yes','it','its','this','that','these','those','my','your','our','their','his','her','he','she','they','we','you','i','me','us','with','without','from','by','as','if','then','than','so','do','does','did','has','have','had','should','would','could','may','might','must','shall','need','needs','want','wants','get','gets','set','sets','use','uses','used','using','make','makes','see','sees','show','shows','new','old','same','other','another','each','every','any','all','some','more','most','very','just','only','also','too','here','there','now','when','where','why','how','what','who','which','name','names','list','page','home','work','personal','main','test','demo','called','named','below','above','one','two','three','first','second','last','next','email','mail','login','user','password','pass','account','key','code','info','details','stuff','thing','things']);
+/* a weak label with no separator is honored only when the value that follows is unmistakably the right kind of thing */
+function smartStrictShape(canon, label, v){
+  if(canon === 'host' || canon === 'url') return smartLooksHost(v);
+  if(canon === 'email') return v.indexOf('@') > 0 && smartFindEmails(v, 1).length === 1;
+  if(canon === 'pin') return /^\d{3,8}$/.test(v);
+  if(canon === 'port') return /port|prt/.test(label) && /^\d{2,5}$/.test(v) && Number(v) <= 65535;
+  if(canon === 'ssid') return /^[A-Za-z0-9][A-Za-z0-9._-]{1,31}$/.test(v) && !SMART_COMMON.has(v.toLowerCase()) && /wifi|wlan|network|ssid|wireless/.test(label);
   return false;
 }
-function smartSplitEntries(text){
-  const t = String(text == null ? '' : text);
-  const chunks = [];
-  const pushList = parts => {
-    for(const p of parts){ const s = p.trim(); if(s.length >= 3 && s.length <= 8000) chunks.push(s); }
-  };
-  let parts = t.split(/\n\s*(?:\d+[.)]|[-*\u2022])\s+/);
-  if(parts.length > 1){ const keep = parts.map(p=>p.trim()).filter(s=>s.length>=3); if(keep.length > 1 && keep.filter(smartChunkSignal).length >= 2) return keep.slice(0, 8); chunks.length = 0; }
-  parts = t.split(/\n\s*\n/);
-  if(parts.length > 1){ const keep = parts.map(p=>p.trim()).filter(s=>s.length>=3); if(keep.length > 1 && keep.filter(smartChunkSignal).length >= 2) return keep.slice(0, 8); chunks.length = 0; }
-  parts = t.split(/(?:[.?!;]+\s+)(?=[A-Z][A-Za-z-]*\b)/);
-  if(parts.length > 1){ const keep = parts.map(p=>p.trim()).filter(s=>s.length>=3); if(keep.length > 1 && keep.filter(smartChunkSignal).length >= 2) return keep.slice(0, 8); }
-  return [t.trim()].filter(s=>s.length > 0).slice(0, 8);
-}
-function smartExtractCredentials(text){
-  const t = String(text == null ? '' : text);
-  const out = [], seen = new Set();
-  const take = (value, providerId) => {
-    const v = smartClean(value);
-    if(v.length < 8 || seen.has(v)) return;
-    seen.add(v); out.push({ value:v, providerId:providerId || null });
-  };
-  for(const p of SMART_PROVIDERS){
-    const m = t.match(new RegExp(p.sig.source, 'g'));
-    if(m) for(const hit of m.slice(0, 4)) take(hit, p.id);
+function smartScanPairs(text, wifiCtx){
+  SMART_FUZZY_BUDGET = 400; SMART_WIFI_NOW = !!wifiCtx;
+  const lines = String(text == null ? '' : text).split('\n', 600);
+  const out = [];
+  let pending = null;
+  for(let li = 0; li < lines.length && out.length < 80; li++){
+    const line = lines[li].trim();
+    if(!line) continue;
+    const ch = line.split(/ +/).filter(Boolean).slice(0, 240);
+    if(!ch.length) continue;
+    let i = 0;
+    if(pending){
+      const L0 = smartMatchLabel(ch, 0);
+      if(!(L0 && (L0.sep || !L0.weak))){
+        let v = ch[0];
+        const uq = smartUnquote(ch, 0);
+        if(uq) v = uq.value;
+        else if(!SMART_SINGLE_TOKEN.has(pending.canon)) v = ch.length <= 6 ? ch.join(' ') : ch[0];
+        v = smartClean(v);
+        if(v && smartShapeOk(pending.canon, v)){ out.push({ canon:pending.canon, value:v, label:pending.label, explicit:true }); i = ch.length; }
+      }
+      pending = null;
+    }
+    while(i < ch.length){
+      const L = smartMatchLabel(ch, i);
+      if(!L){ i++; continue; }
+      let j = i + L.n;
+      let explicit = !!L.sep;
+      let tok = L.rest;
+      if(!explicit && j < ch.length){
+        const nx = ch[j], ln = nx.toLowerCase();
+        if(SMART_SEP_CHUNKS.has(nx)){ explicit = true; j++; }
+        else if(SMART_COPULA.has(ln) && (!L.weak || ((ln === 'called' || ln === 'named') && L.canon === 'ssid') || (i > 0 && SMART_DET.has(ch[i - 1].toLowerCase())))){ explicit = true; j++; }
+        else if(ln === 'for' || ln === 'on' || ln === 'of' || ((ln === 'at' || ln === 'in') && L.canon === 'ssid')){
+          for(let k = j + 1; k < ch.length && k <= j + 5; k++){
+            if(SMART_COPULA.has(ch[k].toLowerCase()) || SMART_SEP_CHUNKS.has(ch[k]) || /[:=]$/.test(ch[k])){
+              explicit = true;
+              if(L.canon === 'ssid' && k > j + 1){ const pl = smartClean(ch.slice(j + 1, k + 1).join(' ').replace(/[:=]+$/, '')); if(pl && !SMART_COPULA.has(pl.toLowerCase())) out.push({ canon:'place', value:pl.slice(0, 60), label:'place', explicit:true }); }
+              j = k + 1; break;
+            }
+          }
+        }
+        if(explicit && L.canon === 'ssid') while(j < ch.length && /^(?:called|named)$/i.test(ch[j])) j++;
+      }
+      if(!tok && j < ch.length && SMART_SEP_CHUNKS.has(ch[j])){ explicit = true; j++; }
+      if(!explicit && L.weak && !(wifiCtx && SMART_WIFI_PW_KEYS.has(L.key) && ch[j] !== undefined)){
+        const c0 = ch[j];
+        if(c0 === undefined && i === 0 && L.n === ch.length){ pending = { canon:L.canon, label:L.label }; break; }
+        if(c0 === undefined || !smartStrictShape(L.canon, L.key, smartClean(c0))){ i++; continue; }
+      }
+      if(!tok && j >= ch.length){ pending = { canon:L.canon, label:L.label }; i = j; break; }
+      const hasTok = !!tok;
+      const arr = hasTok ? [tok].concat(ch.slice(j)) : ch.slice(j);
+      if(!arr.length){ i = j; continue; }
+      let val = '', k = 1;
+      const uq = smartUnquote(arr, 0);
+      if(uq){ val = uq.value; k = uq.next; }
+      else {
+        if(!hasTok && smartIsLabelHere(arr, 0)){
+          /* a label word right after a label usually means "no value here". Exceptions: it is really the value
+             (same label again, or a label-lookalike with attached text), or our own label is strong and clearly separated
+             while the next word is only a SOFT label (a user called "pat" after "u/p:") */
+          const L2 = smartMatchLabel(arr, 0);
+          const hard = !!(L2 && (L2.sep || (arr[L2.n] !== undefined && SMART_SEP_CHUNKS.has(arr[L2.n]))));
+          const asValue = !!(L2 && L2.sep && L2.rest && (L2.canon === L.canon || L2.weak));
+          if(!asValue && (hard || L.weak || !explicit)){ i = j; continue; }
+        }
+        const multi = explicit && !SMART_SINGLE_TOKEN.has(L.canon);
+        const parts = [arr[0]];
+        if(multi){
+          let cnt = 0;
+          while(k < arr.length && cnt < 8){
+            if(/[,;]$/.test(parts[parts.length - 1]) && L.canon !== 'scopes') break;
+            if(smartStopHere(arr, k)) break;
+            parts.push(arr[k]); k++; cnt++;
+          }
+          while(parts.length > 1 && (SMART_SEP_CHUNKS.has(parts[parts.length - 1]) || parts[parts.length - 1] === '/' || parts[parts.length - 1] === '\\' || SMART_CONJ.has(parts[parts.length - 1].toLowerCase()))){ parts.pop(); k--; }
+        }
+        val = parts.join(' ');
+        if(L.canon === 'token'){ const m = val.match(/^(?:bearer|basic|token)\s+(\S{6,})/i); if(m) val = m[1]; }
+        val = val.replace(/[,;]+$/, '');
+      }
+      val = smartClean(val);
+      if(L.canon === 'scopes') val = val.replace(/\s*,\s*/g, ', ');
+      const plainWord = !explicit && SMART_COMMON.has(val.toLowerCase());
+      if(val && !plainWord && smartShapeOk(L.canon, val)){
+        out.push({ canon:L.canon, value:val, label:L.label, explicit });
+        i = j + (hasTok ? k - 1 : k);
+      } else { i = j; }
+    }
   }
-  const pk = t.match(/-----BEGIN (?:OPENSSH )?PRIVATE KEY-----[\s\S]{0,8000}?-----END (?:OPENSSH )?PRIVATE KEY-----/);
-  if(pk) take(pk[0], null);
-  else if(SMART_SIG_PRIVKEY.test(t)) take('private-key-present', null);
-  const cs = t.match(new RegExp(SMART_SIG_CONNSTR.source, 'i'));
-  if(cs) take(cs[0], null);
-  const bearer = t.match(/\bbearer\s+([A-Za-z0-9\-._~+/=]{10,400})/i);
-  if(bearer) take(bearer[1], null);
-  return out.slice(0, 8);
+  return out;
 }
-function smartExtractStructuredFields(text){
+/* ---- platform nicknames: gh, ig, fb, yt, o365, gcp ... matched as whole words, never inside a longer token ---- */
+const SMART_PLAT = {
+  gh:['github','GitHub'], 'git hub':['github','GitHub'], github:['github','GitHub'],   ig:['instagram','Instagram'], insta:['instagram','Instagram'], instagram:['instagram','Instagram'],
+  fb:['facebook','Facebook'], facebook:['facebook','Facebook'], messenger:['facebook','Facebook'],
+  yt:['youtube','YouTube'], ytb:['youtube','YouTube'], youtube:['youtube','YouTube'], 'you tube':['youtube','YouTube'],
+  twitter:['x','X'], 'x.com':['x','X'], twtr:['x','X'],
+  ms:['microsoft','Microsoft'], msft:['microsoft','Microsoft'], microsoft:['microsoft','Microsoft'], o365:['microsoft','Microsoft'], m365:['microsoft','Microsoft'], office365:['microsoft','Microsoft'], 'office 365':['microsoft','Microsoft'], azure:['microsoft','Microsoft'], onedrive:['microsoft','Microsoft'],   outlook:['outlook','Outlook'], hotmail:['outlook','Outlook'],
+  gcp:['googlecloud','Google Cloud'], gcloud:['googlecloud','Google Cloud'], 'google cloud':['googlecloud','Google Cloud'], firebase:['googlecloud','Google Cloud'],
+  google:['google','Google'], gmail:['gmail','Gmail'], 'google mail':['gmail','Gmail'], googlemail:['gmail','Gmail'],
+  aws:['aws','AWS'], 'amazon web services':['aws','AWS'],   amazon:['amazon','Amazon'], amzn:['amazon','Amazon'],   cf:['cloudflare','Cloudflare'], cloudflare:['cloudflare','Cloudflare'],
+  digitalocean:['digitalocean','DigitalOcean'], 'digital ocean':['digitalocean','DigitalOcean'], droplet:['digitalocean','DigitalOcean'],
+  tg:['telegram','Telegram'], telegram:['telegram','Telegram'], whatsapp:['whatsapp','WhatsApp'], whatsap:['whatsapp','WhatsApp'],
+  discord:['discord','Discord'], tiktok:['tiktok','TikTok'], 'tik tok':['tiktok','TikTok'],   snapchat:['snapchat','Snapchat'], reddit:['reddit','Reddit'], twitch:['twitch','Twitch'], pinterest:['pinterest','Pinterest'],
+  linkedin:['linkedin','LinkedIn'], 'linked in':['linkedin','LinkedIn'], spotify:['spotify','Spotify'], netflix:['netflix','Netflix'], nflx:['netflix','Netflix'],
+  steam:['steam','Steam'], 'epic games':['epicgames','Epic Games'], egs:['epicgames','Epic Games'], xbox:['xbox','Xbox'], xbl:['xbox','Xbox'],
+  psn:['playstation','PlayStation'], playstation:['playstation','PlayStation'], ps5:['playstation','PlayStation'], ps4:['playstation','PlayStation'], nintendo:['nintendo','Nintendo'],
+  battlenet:['battlenet','Battle.net'], 'battle net':['battlenet','Battle.net'], bnet:['battlenet','Battle.net'], blizzard:['battlenet','Battle.net'],
+  riot:['riotgames','Riot Games'], 'riot games':['riotgames','Riot Games'], valorant:['riotgames','Riot Games'],   roblox:['roblox','Roblox'], minecraft:['minecraft','Minecraft'], ubisoft:['ubisoft','Ubisoft'], uplay:['ubisoft','Ubisoft'],
+  paypal:['paypal','PayPal'], venmo:['venmo','Venmo'], 'cash app':['cashapp','Cash App'], cashapp:['cashapp','Cash App'],
+  coinbase:['coinbase','Coinbase'], binance:['binance','Binance'], robinhood:['robinhood','Robinhood'], chase:['chase','Chase'], 'wells fargo':['wellsfargo','Wells Fargo'],
+  bofa:['bankofamerica','Bank of America'], 'bank of america':['bankofamerica','Bank of America'], 'capital one':['capitalone','Capital One'], capitalone:['capitalone','Capital One'],
+  tradingview:['tradingview','TradingView'], apple:['apple','Apple'], icloud:['apple','Apple'], 'apple id':['apple','Apple'], 'apple music':['applemusic','Apple Music'],
+  dropbox:['dropbox','Dropbox'], dbx:['dropbox','Dropbox'], slack:['slack','Slack'], zoom:['zoom','Zoom'], notion:['notion','Notion'], figma:['figma','Figma'], adobe:['adobe','Adobe'],
+  openai:['openai','OpenAI'], chatgpt:['openai','OpenAI'], gpt:['openai','OpenAI'], anthropic:['anthropic','Anthropic'], claude:['anthropic','Anthropic'],
+  bitwarden:['bitwarden','Bitwarden'], proton:['proton','ProtonMail'], protonmail:['proton','ProtonMail'], 'proton mail':['proton','ProtonMail'], uber:['uber','Uber'], airbnb:['airbnb','Airbnb'],
+  mastodon:['mastodon','Mastodon'], };
+function smartPlatformMention(text){
   const t = String(text == null ? '' : text);
-  const f = { emails:[], urls:[], host:'', port:'', username:'', password:'', ssid:'', engine:'', json:null, dbname:'' };
-  /* Mask connection strings and key blocks before the generic scans so a
-     password containing "@" is not misread as an email address. */
+  const words = t.toLowerCase().split(/[\s,;()<>"'`\[\]{}:=|]+/).slice(0, 300).map(smartTrimPunct).filter(Boolean);
+  for(let i = 0; i < words.length; i++){
+    const w = words[i];
+    if(i + 1 < words.length){ const bi = SMART_PLAT[w + ' ' + words[i + 1]]; if(bi) return { key:bi[0], name:bi[1] }; }
+    if(w.length <= 24 && Object.prototype.hasOwnProperty.call(SMART_PLAT, w)){ const e = SMART_PLAT[w]; return { key:e[0], name:e[1] }; }
+  }
+  return null;
+}
+const SMART_2LD = new Set(['co.uk','org.uk','ac.uk','gov.uk','com.au','net.au','org.au','co.nz','co.jp','co.in','com.br','com.mx','co.za','com.cn','com.hk','com.sg','com.tr','co.kr','com.ar','com.tw']);
+const SMART_DOMAIN_KEY = { twitter:'x', x:'x', youtu:'youtube', fb:'facebook', discordapp:'discord', microsoftonline:'microsoft', office:'microsoft', azure:'microsoft', live:'outlook', icloud:'apple', steampowered:'steam', steamcommunity:'steam', amzn:'amazon', googlemail:'gmail', protonmail:'proton', pm:'proton', blizzard:'battlenet', cash:'cashapp', wellsfargo:'wellsfargo', bankofamerica:'bankofamerica', chatgpt:'openai', claude:'anthropic' };
+function smartRegistrable(host){
+  const h = String(host || '').toLowerCase().replace(/^www\./, '').replace(/:\d+$/, '');
+  const parts = h.split('.').filter(Boolean);
+  if(parts.length <= 2) return parts;
+  return SMART_2LD.has(parts.slice(-2).join('.')) ? parts.slice(-3) : parts.slice(-2);
+}
+function smartPlatformFromHost(host){
+  const reg = smartRegistrable(host);
+  if(!reg.length) return null;
+  const label = reg[0];
+  const hit = SMART_DOMAIN_KEY[label] || label;
+  const c = smartCatalogByKey(hit) || smartCatalogByKey(label);
+  if(c) return { key:c.key, name:c.name, color:c.color };
+  try{ for(const x of CATALOG){ if(x.name.toLowerCase().replace(/[^a-z0-9]/g, '') === label) return { key:x.key, name:x.name, color:x.color }; } }catch(_){}
+  const nm = smartTitle(label).slice(0, 40);
+  if(!nm) return null;
+  return { key:'custom:' + label.replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60), name:nm, color:'#c9a86a', custom:true };
+}
+/* ================= layout detectors: each returns entries {text, pre} so a pasted file becomes one draft per record ================= */
+function smartCsvRow(line, d){
+  const out = []; let cur = '', q = false;
+  for(let i = 0; i < line.length && out.length < 14; i++){
+    const c = line.charAt(i);
+    if(q){ if(c === '"'){ if(line.charAt(i + 1) === '"'){ cur += '"'; i++; } else q = false; } else cur += c; }
+    else if(c === '"' && cur === '') q = true;
+    else if(c === d){ out.push(cur.trim()); cur = ''; }
+    else cur += c;
+  }
+  out.push(cur.trim());
+  return out;
+}
+function smartCellEmail(c){ return !!c && smartFindEmails(c, 1)[0] === c; }
+function smartInferRow(cells){
+  const pairs = [], rest = [];
+  for(const c of cells){
+    if(!c) continue;
+    if(smartCellEmail(c)) pairs.push({ canon:'email', value:c });
+    else if(smartLooksHost(c) && !/^\d+$/.test(c)) pairs.push({ canon:'url', value:c });
+    else if(c.length <= 24 && (Object.prototype.hasOwnProperty.call(SMART_PLAT, c.toLowerCase()) || (smartCatalogMention(c) && !/[0-9]/.test(c)))) continue;
+    else rest.push(c);
+  }
+  const hasEmail = pairs.some(p => p.canon === 'email');
+  if(!rest.length || (!hasEmail && rest.length < 2)) return pairs;
+  let pi = 0, best = -1;
+  rest.forEach((c, i) => { const sc = smartSecretScore(c); if(sc >= best){ best = sc; pi = i; } });
+  const left = rest.filter((_, i) => i !== pi);
+  if(hasEmail){ if(left[0]) pairs.push({ canon:'name', value:left[0] }); }
+  else if(left.length >= 2){ pairs.push({ canon:'name', value:left[0] }); pairs.push({ canon:'username', value:left[1] }); }
+  else pairs.push({ canon:'username', value:left[0] });
+  pairs.push({ canon:'password', value:rest[pi] });
+  return pairs;
+}
+const SMART_SECRETISH = ['password','token','apikey','otp','pin','license','secret','pair'];
+function smartTableEntries(lines){
+  const rows = lines.map(l => l.trim()).filter(Boolean);
+  if(!rows.length || rows.length > 60) return null;
+  let cellsList = null;
+  const md = rows.filter(r => r.charAt(0) === '|' && r.indexOf('|', 1) > 0);
+  if(md.length >= 2 && md.length >= rows.length - 1){
+    cellsList = md.filter(r => !(/^[\s|:-]+$/.test(r) && r.indexOf('-') >= 0)).map(r => r.replace(/^\|/, '').replace(/\|$/, '').split('|').slice(0, 14).map(c => c.trim()));
+  } else {
+    for(const d of ['\t', ',', ';', '|']){
+      const parsed = rows.map(r => r.indexOf(d) >= 0 ? smartCsvRow(r, d) : null);
+      if(parsed.some(p => !p)) continue;
+      const n = parsed[0].length;
+      if(n < 2 || n > 10 || parsed.some(p => p.length !== n)) continue;
+      cellsList = parsed; break;
+    }
+  }
+  if(!cellsList || !cellsList.length) return null;
+  const n0 = cellsList[0].length;
+  if(cellsList.some(c => c.length !== n0)) return null;
+  /* header row: at least two cells are known labels and none is itself an email, host or IP */
+  const canon0 = cellsList[0].map(c => { const r = smartLabelCanon(c, false); return r ? r.canon : ''; });
+  const isHeader = canon0.filter(Boolean).length >= 2 && !cellsList[0].some(c => smartCellEmail(c) || smartLooksHost(c));
+  const data = isHeader ? cellsList.slice(1) : cellsList;
+  if(!isHeader && !data.every(cells => cells.some(smartCellEmail))) return null;      // a headerless table needs an email in EVERY row, otherwise the positional-row reader handles it
+  const entries = [];
+  for(const cells of data.slice(0, 8)){
+    let pairs = [];
+    if(isHeader){
+      cells.forEach((c, k) => { const cn = canon0[k]; if(cn && c && smartShapeOk(cn === 'pair' ? 'password' : cn, c)) pairs.push({ canon:cn, value:c }); });
+    } else {
+      const platCell = c => c.length <= 24 && (Object.prototype.hasOwnProperty.call(SMART_PLAT, c.toLowerCase()) || (!!smartCatalogMention(c) && !/[0-9]/.test(c)));
+      if(!cells.some(smartCellEmail) || cells.some(c => smartLabelCanon(c, false) || (/\s/.test(c) && !platCell(c)))) continue;      // headerless rows are single-token cells, never prose
+      pairs = smartInferRow(cells);
+    }
+    if(!pairs.some(p => SMART_SECRETISH.indexOf(p.canon) >= 0)) continue;
+    entries.push({ text:cells.filter(Boolean).join(' '), pre:{ pairs } });
+  }
+  return entries.length ? entries : null;
+}
+const SMART_RE_COMBO = /^([A-Za-z0-9._%+-]{1,64}@[A-Za-z0-9.-]{1,253}\.[A-Za-z]{2,24})\s*[:|;,]?\s*(\S{3,300})$/;
+function smartComboEntries(lines){
+  const rows = lines.map(l => l.trim()).filter(Boolean);
+  if(!rows.length || rows.length > 40) return null;
+  const entries = [];
+  for(const r of rows){
+    const m = SMART_RE_COMBO.exec(r);
+    if(!m || smartLooksHost(m[2]) || m[2].indexOf('@') === 0) return null;
+    entries.push({ text:r, pre:{ pairs:[{ canon:'email', value:m[1] }, { canon:'password', value:smartClean(m[2]) }] } });
+  }
+  return entries.slice(0, 8);
+}
+function smartJsonPairs(o, depth, out){
+  if(!o || typeof o !== 'object' || depth > 3 || out.length > 40) return out;
+  for(const key of Object.keys(o).slice(0, 60)){
+    const v = o[key];
+    if(typeof v === 'string' || typeof v === 'number'){
+      const r = smartLabelCanon(key, false);
+      const sv = smartClean(String(v));
+      if(r && sv && smartShapeOk(r.canon === 'pair' ? 'password' : r.canon, sv)) out.push({ canon:r.canon, value:sv });
+    } else if(Array.isArray(v)){
+      for(const el of v.slice(0, 3)){
+        if(typeof el === 'string'){ const r = smartLabelCanon(key, false); if(r && r.canon === 'url' && smartLooksHost(el)) out.push({ canon:'url', value:smartClean(el) }); }
+        else if(el && typeof el === 'object') smartJsonPairs(el, depth + 1, out);
+      }
+    } else if(v && typeof v === 'object') smartJsonPairs(v, depth + 1, out);
+  }
+  return out;
+}
+function smartJsonEntries(t){
+  const s = String(t).trim();
+  const c = s.charAt(0);
+  if((c !== '[' && c !== '{') || s.length > 20000) return null;
+  let v = null;
+  try{ v = JSON.parse(s); }catch(_){ return null; }
+  const roots = Array.isArray(v) ? v : (v && Array.isArray(v.items) ? v.items : (v && Array.isArray(v.logins) ? v.logins : (v && Array.isArray(v.entries) ? v.entries : null)));
+  if(!roots) return null;
+  const entries = [];
+  for(const o of roots.slice(0, 8)){
+    if(!o || typeof o !== 'object') continue;
+    const pairs = smartJsonPairs(o, 0, []);
+    if(!pairs.some(p => SMART_SECRETISH.indexOf(p.canon) >= 0)) continue;
+    entries.push({ text:pairs.map(p => p.value).join(' '), pre:{ pairs } });
+  }
+  return entries.length ? entries : null;
+}
+/* ~/.ssh/config */
+function smartSplitSshConfig(lines){
+  const blocks = []; let cur = null;
+  for(const raw of lines.slice(0, 400)){
+    const m = /^\s*(Host|HostName|User|Port|IdentityFile)\s*[ =]\s*(\S.{0,200})$/i.exec(raw);
+    if(!m) continue;
+    const k = m[1].toLowerCase(), v = m[2].trim();
+    if(k === 'host'){ cur = { alias:v.split(/\s+/)[0], host:'', user:'', port:'', identity:'' }; blocks.push(cur); }
+    else if(cur){ if(k === 'hostname') cur.host = v; else if(k === 'user') cur.user = v; else if(k === 'port') cur.port = v; else if(k === 'identityfile') cur.identity = v; }
+  }
+  const good = blocks.filter(b => b.host && b.alias.indexOf('*') < 0 && b.alias.indexOf('?') < 0).slice(0, 8);
+  if(!good.length) return null;
+  return good.map(b => ({ text:'ssh config ' + b.alias, pre:{ ssh:b } }));
+}
+/* .env files: each credential-looking variable is its own entry, DB_* style variables are grouped into one database entry */
+const SMART_ENV_RE = /^\s*(?:export\s+)?([A-Za-z_][A-Za-z0-9_]{1,63})\s*=\s*(.{0,2000})$/;
+const SMART_ENV_CRED = /(?:KEY|TOKEN|SECRET|PASSWORD|PASSWD|PWD|PASS|CREDENTIAL|DSN|AUTH|BEARER|PAT|APIKEY|PRIVATE)(?:_|$)|(?:DATABASE|REDIS|MONGO|POSTGRES|MYSQL|AMQP|BROKER|CACHE|QUEUE)[A-Z_]*_(?:URL|URI)$/i;
+const SMART_ENV_PLACEHOLDER = /^(?:changeme|change_me|change-me|your[-_a-z0-9]*|xxx+|\*+|<[^>]*>|\$\{[^}]*\}|todo|null|none|undefined|true|false|example.*|placeholder|replace.*|secret|password|[0-9]{1,3})$/i;
+function smartEnvValue(v){
+  let s = String(v).trim();
+  const q = s.charAt(0);
+  if(q === '"' || q === "'"){ const e = s.indexOf(q, 1); if(e > 0) return s.slice(1, e); }
+  const sp = s.search(/\s/); if(sp > 0) s = s.slice(0, sp);
+  return s;
+}
+function smartEnvLine(line){
+  const m = SMART_ENV_RE.exec(line);
+  if(!m) return null;
+  return { name:m[1], value:smartEnvValue(m[2]) };
+}
+function smartEnvCredLike(e){
+  if(!e || !e.value || e.value.length < 4 || SMART_ENV_PLACEHOLDER.test(e.value)) return false;
+  if(/PUBLIC/i.test(e.name) && !/SECRET|PRIVATE/i.test(e.name)) return false;
+  if(/^[a-z][a-z0-9+.-]{1,12}:\/\/[^\s:@]{1,64}:[^\s@]{1,300}@/i.test(e.value)) return true;
+  if(/^(?:postgres(?:ql)?|mysql|mariadb|mongodb(?:\+srv)?|redis|amqp)s?:\/\//i.test(e.value)) return true;
+  return SMART_ENV_CRED.test(e.name);
+}
+const SMART_ENV_DB = /^(DB|DATABASE|POSTGRES(?:QL)?|PG|MYSQL|MARIADB|MONGO(?:DB)?|REDIS|SQL)_?(HOST(?:NAME)?|PORT|USER(?:NAME)?|PASS(?:WORD)?|PWD|NAME|DATABASE|DB)$/i;
+function smartEnvGroup(s){ return String(s).toUpperCase().replace(/^PG$/, 'POSTGRES').replace(/^POSTGRESQL$/, 'POSTGRES').replace(/^MONGODB$/, 'MONGO'); }
+function smartSplitEnv(lines){
+  const used = lines.map(l => l.trim()).filter(l => l && l.charAt(0) !== '#');
+  const parsed = used.map(smartEnvLine);
+  if(used.length < 2 || parsed.filter(Boolean).length < Math.max(2, Math.ceil(used.length * 0.6))) return null;
+  const vars = parsed.filter(Boolean).slice(0, 120);
+  if(vars.every(e => smartLabelCanon(e.name, false))) return null;
+  const groups = Object.create(null);
+  for(const e of vars){
+    const m = SMART_ENV_DB.exec(e.name);
+    if(!m) continue;
+    const g = smartEnvGroup(m[1]);
+    const k = m[2].toUpperCase();
+    const o = groups[g] || (groups[g] = { host:'', port:'', user:'', pass:'', db:'' });
+    if(/^HOST/.test(k)) o.host = e.value; else if(k === 'PORT') o.port = e.value; else if(/^USER/.test(k)) o.user = e.value;
+    else if(/^PASS|^PWD/.test(k)) o.pass = e.value; else o.db = e.value;
+  }
+  const entries = [], valid = Object.create(null);
+  for(const g of Object.keys(groups)){
+    const o = groups[g];
+    if(!o.host && !(o.user && o.pass)) continue;
+    valid[g] = true;
+    const engine = /^(POSTGRES|MYSQL|MARIADB|MONGO|REDIS)$/.test(g) ? g.toLowerCase().replace('mongo', 'mongodb') : '';
+    entries.push({ text:(engine || 'database') + ' database ' + g.toLowerCase() + ' variables', pre:{ db:{ engine, host:o.host, port:o.port, username:o.user, password:o.pass, dbname:o.db }, reason:'Grouped the ' + g + '_* environment variables into one database entry.' } });
+  }
+  for(const e of vars){
+    const m = SMART_ENV_DB.exec(e.name);
+    if(m && valid[smartEnvGroup(m[1])]) continue;
+    if(!smartEnvCredLike(e)) continue;
+    entries.push({ text:e.name + '=' + e.value });
+  }
+  return entries.length ? entries.slice(0, 8) : null;
+}
+function smartStrongLine(line){
+  const t = smartPrep(line);
+  if(t.length < 6) return false;
+  for(const p of SMART_PROVIDERS){ if(!p.ctxOnly && p.sig.test(t)) return true; }
+  if(SMART_SIG_CONNSTR.test(t) || /WIFI:/i.test(t) || /otpauth:\/\//i.test(t)) return true;
+  if(smartParseSshCmd(t)) return true;
+  const ev = smartEnvLine(t); if(ev && smartEnvCredLike(ev)) return true;
+  if(SMART_RE_COMBO.test(t.trim())) return true;
+  const f = smartExtractStructuredFields(line);
+  return !!((f.password || f.token) && (f.emails.length || f.username || f.site || f.host));
+}
+function smartChunkSignal(c){
+  const t = smartPrep(c);
+  if(smartStrongLine(c)) return true;
+  if(SMART_RE_APILABEL.test(t) || SMART_RE_WIFI.test(t) || SMART_RE_DB.test(t)) return true;
+  const pairs = smartScanPairs(t);
+  if(pairs.some(p => p.canon === 'host') && pairs.some(p => p.canon === 'username' || p.canon === 'password')) return true;
+  return false;
+}
+/* rows like "amazon  bob@x.com  Orange55!" or "reddit bobby Lemon77#": three cells, last one secret-shaped, on every line */
+function smartPositionalEntries(lines){
+  const rows = lines.map(l => l.trim()).filter(Boolean);
+  if(rows.length < 2 || rows.length > 40) return null;
+  const entries = [];
+  for(const r of rows){
+    let cells = r.split(/\t| {2,}/).map(c => c.trim()).filter(Boolean);
+    if(cells.length !== 3) cells = r.split(/\s+/);
+    if(cells.length !== 3) return null;
+    const [c1, c2, c3] = cells;
+    if(!smartStrongSecret(c3) || smartCellEmail(c1) || smartSecretish(c1) || smartLooksHost(c2) || /^\d+$/.test(c2)) return null;
+    if(!(smartCellEmail(c2) || /[A-Za-z]/.test(c2))) return null;
+    if(smartLabelCanon(c1, false) || smartLabelCanon(c2, false)) return null;
+    entries.push({ text:r, pre:{ pairs:[{ canon:'name', value:c1 }, { canon:smartCellEmail(c2) ? 'email' : 'username', value:c2 }, { canon:'password', value:c3 }] } });
+  }
+  return entries.slice(0, 8);
+}
+function smartSplitEntries(text){
+  const raw = String(text == null ? '' : text);
+  const t = smartPrep(raw, true);          /* tabs kept, so a TSV is still a TSV for the table detector */
+  const lines = t.split('\n', 2000);
+  const json = smartJsonEntries(t); if(json) return json;
+  const table = smartTableEntries(lines); if(table) return table;
+  const combo = smartComboEntries(lines); if(combo) return combo;
+  const posn = smartPositionalEntries(lines); if(posn) return posn;
+  const cfg = smartSplitSshConfig(lines); if(cfg) return cfg;
+  const env = smartSplitEnv(lines); if(env) return env;
+  const nonEmpty = lines.filter(l => l.trim());
+  const rawLines = raw.replace(/\r\n?/g, '\n').split('\n', 2000);
+  const isMarker = l => /^\s{0,8}(?:\d{1,3}[.)]|[-*•])\s+\S/.test(l);
+  if(rawLines.filter(isMarker).length >= 2){
+    const chunks = []; let cur = null;
+    for(const l of rawLines){
+      if(isMarker(l)){ cur = [l.replace(/^\s{0,8}(?:\d{1,3}[.)]|[-*•])\s+/, '')]; chunks.push(cur); }
+      else if(cur) cur.push(l); else { cur = [l]; chunks.push(cur); }
+    }
+    const keep = chunks.map(c => c.join('\n').trim()).filter(s => s.length >= 3);
+    if(keep.length > 1 && keep.filter(smartChunkSignal).length >= 2) return keep.slice(0, 8);
+  }
+  {
+    const chunks = []; let cur = [];
+    for(const l of rawLines){ if(!l.trim()){ if(cur.length){ chunks.push(cur.join('\n')); cur = []; } } else cur.push(l); }
+    if(cur.length) chunks.push(cur.join('\n'));
+    const keep = chunks.map(c => c.trim()).filter(s => s.length >= 3);
+    if(keep.length > 1 && keep.filter(smartChunkSignal).length >= 2) return keep.slice(0, 8);
+  }
+  if(nonEmpty.length >= 2 && nonEmpty.length <= 40){
+    const strong = nonEmpty.map(l => smartStrongLine(l));
+    const n = strong.filter(Boolean).length;
+    if(n >= 2 && n >= Math.ceil(nonEmpty.length * 0.5)){
+      const out = []; let curv = null;
+      nonEmpty.forEach((l, k) => { if(strong[k]){ curv = [l]; out.push(curv); } else if(curv) curv.push(l); else { curv = [l]; out.push(curv); } });
+      return out.map(c => c.join('\n').trim()).slice(0, 8);
+    }
+  }
+  {
+    const parts = raw.split(/[.?!;]\s+(?=[A-Z])/);
+    if(parts.length > 1){ const keep = parts.map(p => p.trim()).filter(s => s.length >= 3); if(keep.length > 1 && keep.filter(smartChunkSignal).length >= 2) return keep.slice(0, 8); }
+  }
+  return [raw.trim()].filter(s => s.length > 0).slice(0, 8);
+}
+/* ================= parsers for one-line machine formats ================= */
+function smartShellTokens(s, cap){
+  const out = []; let cur = '', q = '', has = false;
+  for(let i = 0; i < s.length && out.length < cap; i++){
+    const c = s.charAt(i);
+    if(q){ if(c === q) q = ''; else if(c === '\\' && q === '"' && i + 1 < s.length) cur += s.charAt(++i); else cur += c; }
+    else if(c === '"' || c === "'"){ q = c; has = true; }
+    else if(c === ' ' || c === '\t' || c === '\n'){ if(cur || has) out.push(cur); cur = ''; has = false; }
+    else if(c === '\\' && s.charAt(i + 1) === '\n') i++;
+    else cur += c;
+  }
+  if(cur || has) out.push(cur);
+  return out;
+}
+function smartParseCurl(t){
+  const m = /(?:^|[\s;&|$>])curl(?=[ \t])/i.exec(t);
+  if(!m) return null;
+  const start = m.index;
+  const toks = smartShellTokens(t.slice(m.index + m[0].length, m.index + m[0].length + 2500), 60);
+  const r = { url:'', user:'', pass:'', token:'', header:'', start };
+  for(let i = 0; i < toks.length; i++){
+    const tk = toks[i];
+    if(tk === '-u' || tk === '--user'){ const v = toks[++i] || ''; const c = v.indexOf(':'); if(c > 0){ r.user = v.slice(0, c); r.pass = v.slice(c + 1); } }
+    else if(tk === '-H' || tk === '--header'){
+      const h = toks[++i] || '';
+      const hm = /^([A-Za-z0-9-]{2,40})\s*:\s*(.{1,800})$/.exec(h);
+      if(!hm) continue;
+      const name = hm[1].toLowerCase(), val = hm[2].trim();
+      if(name === 'authorization'){
+        const b = /^(?:bearer|token)\s+(\S{6,})$/i.exec(val), bs = /^basic\s+(\S{4,})$/i.exec(val);
+        if(b){ r.token = b[1]; r.header = 'Authorization'; }
+        else if(bs){ try{ const d = (typeof atob === 'function') ? atob(bs[1]) : ''; const c = d.indexOf(':'); if(c > 0){ r.user = d.slice(0, c); r.pass = d.slice(c + 1); } }catch(_){} }
+      } else if(/^(?:x-api-key|api-key|apikey|x-auth-token|private-token|x-token|x-access-token|x-api-token)$/.test(name)){ r.token = val; r.header = hm[1]; }
+    }
+    else if(/^https?:\/\//i.test(tk) && !r.url) r.url = tk;
+  }
+  return (r.url || r.user || r.token) ? r : null;
+}
+const SMART_DB_SCHEMES = /^(?:postgres(?:ql)?|mysql|mariadb|mongodb(?:\+srv)?|redis|amqp)$/i;
+function smartFindCredUrl(masked){
+  const toks = smartWords(masked, 300);
+  for(const tk of toks){
+    if(tk.length < 8 || tk.length > 700 || tk.indexOf('@') < 0 || tk.indexOf(':') < 0) continue;
+    let m = /^([a-z][a-z0-9+.-]{1,12}):\/\/([^\s:@\/]{1,128}):([^\s\/]{1,300})@([^\s\/?#@]{1,253})([^\s]{0,300})$/i.exec(tk);
+    if(m){ if(SMART_DB_SCHEMES.test(m[1])) continue; return { token:tk, user:m[2], pass:m[3], host:m[4].replace(/:\d+$/, ''), url:m[1] + '://' + m[4] + m[5] }; }
+    m = /^([A-Za-z0-9._%+-]{1,64}):([^\s@]{1,300})@((?:[A-Za-z0-9-]+\.)+[A-Za-z]{2,24}|\d{1,3}(?:\.\d{1,3}){3})(?::\d{1,5})?$/.exec(tk);
+    if(m && !smartLabelCanon(m[1], false) && !/^(?:mailto|tel|sms|http|https|ftp)$/i.test(m[1])) return { token:tk, user:m[1], pass:m[2], host:m[3], url:'' };
+  }
+  return null;
+}
+const SMART_SSH_BAD = new Set(['key','keys','for','to','access','login','into','server','password','credentials','the','my','is','on','with','and','config','agent','from','a','an','command','add','copy','keygen','setup','set','up','tunnel','port','forwarding']);
+function smartParseSshCmd(t){
+  const m = /(?:^|[\s;&|$>])(ssh|sftp|mosh)(?=[ \t])/i.exec(t);
+  if(!m) return null;
+  const from = m.index + m[0].length;
+  const nl = t.indexOf('\n', from);
+  const rest = t.slice(from, nl < 0 ? from + 400 : Math.min(nl, from + 400));
+  const toks = rest.split(/[ \t]+/).filter(Boolean).slice(0, 24);
+  const takes = { p:1, i:1, l:1, o:1, J:1, F:1, b:1, c:1, D:1, L:1, R:1, E:1, m:1, S:1, w:1 };
+  let user = '', host = '', port = '', identity = '';
+  for(let i = 0; i < toks.length; i++){
+    const tk = toks[i];
+    if(tk.length > 1 && tk.charAt(0) === '-'){
+      const fl = tk.charAt(1);
+      if(takes[fl]){
+        const arg = tk.length > 2 ? tk.slice(2) : (toks[++i] || '');
+        if(fl === 'p') port = arg.replace(/\D/g, ''); else if(fl === 'i') identity = arg; else if(fl === 'l' && !user) user = arg;
+      }
+      continue;
+    }
+    if(!host){
+      const g = /^(?:([A-Za-z0-9._-]{1,64})@)?([A-Za-z0-9][A-Za-z0-9.-]{0,252})(?::(\d{1,5}))?$/.exec(tk.replace(/^["']|["']$/g, ''));
+      if(!g) continue;
+      const hh = g[2];
+      if(g[1] || hh.indexOf('.') > 0 || SMART_ISIP.test(hh)){
+        if(!g[1] && SMART_SSH_BAD.has(hh.toLowerCase())) continue;
+        if(g[1]) user = g[1]; host = hh; if(g[3]) port = g[3];
+      }
+    }
+  }
+  if(!host) return null;
+  return { user, host, port, identity };
+}
+function smartFindUserAtHost(t){
+  const ctx = /\bssh\b/i.test(t);
+  for(const tk of smartWords(t, 200)){
+    if(tk.indexOf('@') < 1 || tk.length > 300) continue;
+    const m = /^([A-Za-z_][A-Za-z0-9._-]{0,31})@(\d{1,3}(?:\.\d{1,3}){3}|[A-Za-z0-9][A-Za-z0-9-]*)(?::(\d{1,5}))?$/.exec(tk);
+    if(!m) continue;
+    if(SMART_ISIP.test(m[2]) || (ctx && m[2].length >= 3 && !/^\d+$/.test(m[2]))) return { user:m[1], host:m[2], port:m[3] || '', identity:'' };
+  }
+  return null;
+}
+function smartParseWifiQr(t){
+  const i = t.search(/WIFI:/i);
+  if(i < 0) return null;
+  const s = t.slice(i + 5, i + 5 + 600);
+  const out = {}; let key = '', val = '', inKey = true, esc = false;
+  for(let k = 0; k < s.length; k++){
+    const c = s.charAt(k);
+    if(esc){ if(inKey) key += c; else val += c; esc = false; continue; }
+    if(c === '\\'){ esc = true; continue; }
+    if(inKey){ if(c === ':'){ inKey = false; } else if(c === ';'){ key = ''; } else key += c; }
+    else if(c === ';'){ out[key.toUpperCase()] = val; key = ''; val = ''; inKey = true; if(s.charAt(k + 1) === ';') break; }
+    else val += c;
+  }
+  if(!inKey && key){ out[key.toUpperCase()] = val; }
+  if(!out.S) return null;
+  return { ssid:out.S.slice(0, 64), password:out.P || '', type:out.T || '', hidden:String(out.H || '').toLowerCase() === 'true' };
+}
+function smartParseOtpauth(t){
+  const m = /otpauth:\/\/(totp|hotp)\/([^?\s]{0,200})\?([^\s]{1,600})/i.exec(t);
+  if(!m) return null;
+  let label = ''; try{ label = decodeURIComponent(m[2]); }catch(_){ label = m[2]; }
+  const q = {};
+  String(m[3]).split('&').slice(0, 12).forEach(kv => { const j = kv.indexOf('='); if(j > 0){ let v = kv.slice(j + 1); try{ v = decodeURIComponent(v.replace(/\+/g, ' ')); }catch(_){} q[kv.slice(0, j).toLowerCase()] = v; } });
+  if(!q.secret) return null;
+  let issuer = q.issuer || '', account = label;
+  const c = label.indexOf(':');
+  if(c > 0){ if(!issuer) issuer = label.slice(0, c).trim(); account = label.slice(c + 1).trim(); }
+  return { uri:true, type:m[1].toLowerCase(), secret:q.secret.replace(/[\s-]/g, '').toUpperCase().slice(0, 128), issuer:issuer.slice(0, 80), account:account.slice(0, 200), digits:q.digits || '', period:q.period || '' };
+}
+function smartFindBase32(t){
+  if(!/(?:^|[\s,;:(\[])(?:2fa|totp|otp|authenticator|two[- ]?factor|mfa|setup key|2[- ]step)(?=$|[\s,;:)\].=])/i.test(t)) return '';
+  for(const p of SMART_PROVIDERS){ if(!p.ctxOnly && p.sig.test(t)) return ''; }
+  const spaced = /(?:[A-Za-z2-7]{4}[ -]){3,15}[A-Za-z2-7]{1,4}(?![A-Za-z0-9])/.exec(t);
+  if(spaced){ const s = spaced[0].replace(/[ -]/g, '').toUpperCase(); if(s.length >= 16 && s.length <= 64) return s; }
+  for(const tk of smartWords(t, 300)){
+    if(tk.length < 16 || tk.length > 70) continue;
+    if(/^[A-Za-z2-7]{16,64}={0,6}$/.test(tk) && (/[2-7]/.test(tk) || tk === tk.toUpperCase())) return tk.replace(/=+$/, '').toUpperCase();
+  }
+  return '';
+}
+function smartFindAwsSecret(t){
+  const re = /(?:^|[^A-Za-z0-9\/+=])([A-Za-z0-9\/+=]{40})(?![A-Za-z0-9\/+=])/g;
+  let m, n = 0;
+  while((m = re.exec(t)) && n++ < 20){
+    const s = m[1];
+    if(/^(?:AKIA|ASIA)/.test(s)) continue;
+    if(/[a-z]/.test(s) && /[A-Z]/.test(s) && smartEntropy(s) >= 3.4) return s;
+  }
+  return '';
+}
+/* ================= assembling every field the text offers ================= */
+const SMART_WIFI_PW_KEYS = new Set(['key','wpakey','wpa2key','wpa3key','securitykey','networkkey','wirelesskey','wifikey','encryptionkey','passphrase','passkey','code','secret','pin']);
+function smartApplyPairs(f, pairs, wifiCtx){
+  for(const p0 of pairs){
+    const p = p0;
+    const v = p.value;
+    let c = p.canon;
+    if(!v) continue;
+    if(wifiCtx && !f.password && (c === 'apikey' || c === 'token' || c === 'secret' || c === 'pin' || c === 'license' || c === 'otp') && SMART_WIFI_PW_KEYS.has(smartCompact(p.label || ''))) c = 'password';
+    if(c === 'password'){ if(!f.password) f.password = v; }
+    else if(c === 'pin'){ if(!f.pin) f.pin = v; }
+    else if(c === 'username'){ if(smartFindEmails(v, 1)[0] === v){ if(f.emails.indexOf(v) < 0) f.emails.unshift(v); } else if(!f.username) f.username = v; }
+    else if(c === 'email'){ if(f.emails.indexOf(v) < 0) f.emails.unshift(v); }
+    else if(c === 'pair'){
+      const parts = v.split(/\s*[\/|]\s*|\s+/).filter(Boolean);
+      if(parts[0]){ if(smartFindEmails(parts[0], 1)[0] === parts[0]){ if(f.emails.indexOf(parts[0]) < 0) f.emails.unshift(parts[0]); } else if(!f.username) f.username = smartClean(parts[0]); }
+      if(parts[1] && !f.password) f.password = smartClean(parts[1]);
+    }
+    else if(c === 'url'){ const u = /^[a-z][a-z0-9+.-]{1,12}:\/\//i.test(v) ? v : 'https://' + v; if(f.urls.indexOf(u) < 0) f.urls.push(u.slice(0, 200)); }
+    else if(c === 'host'){
+      const hm = /^(?:[a-z][a-z0-9+.-]{1,12}:\/\/)?([^\/:?#\s]+)(?::(\d{1,5}))?/i.exec(v);
+      if(hm && !f.host) f.host = hm[1];
+      if(hm && hm[2] && !f.port) f.port = hm[2];
+    }
+    else if(c === 'port'){ if(!f.port) f.port = v; }
+    else if(c === 'dbname'){ if(!f.dbname) f.dbname = v.slice(0, 128); }
+    else if(c === 'dbextra'){ if(!f.dbextra) f.dbextra = v.slice(0, 128); }
+    else if(c === 'ssid'){ if(!f.ssid) f.ssid = v.slice(0, 64); }
+    else if(c === 'token' || c === 'apikey'){ if(!f.token && !SMART_PLACEHOLDER.test(v)) f.token = v; }
+    else if(c === 'keyid'){ if(!f.keyid) f.keyid = v; }
+    else if(c === 'secret'){ if(!f.secretKey && !SMART_PLACEHOLDER.test(v)) f.secretKey = v; }
+    else if(c === 'webhook'){ if(!f.webhook) f.webhook = v; }
+    else if(c === 'scopes'){ if(!f.scopes) f.scopes = v.slice(0, 500); }
+    else if(c === 'remail'){ if(!f.remail && smartFindEmails(v, 1)[0] === v) f.remail = v; }
+    else if(c === 'place'){ if(!f.place) f.place = v; }
+    else if(c === 'license'){ if(!f.license) f.license = v; }
+    else if(c === 'recovery'){ if(!f.recovery) f.recovery = v; }
+    else if(c === 'otp'){ if(!f.otp) f.otp = v; }
+    else if(c === 'question'){ if(!f.question) f.question = v; }
+    else if(c === 'answer'){ if(!f.answer) f.answer = v; }
+    else if(c === 'name'){ if(!f.nameHint) f.nameHint = v.slice(0, 80); }
+    else if(c === 'notes'){ if(!f.notesHint) f.notesHint = v.slice(0, 400); }
+  }
+}
+function smartSiteFrom(f, masked){
+  for(const u of f.urls){
+    const hm = /^[a-z][a-z0-9+.-]{1,12}:\/\/(?:[^\/@]*@)?([^\/:?#]+)/i.exec(u);
+    if(hm && hm[1].indexOf('.') > 0 && !SMART_ISIP.test(hm[1])) return { host:hm[1].toLowerCase().replace(/^www\./, ''), url:u.slice(0, 200) };
+  }
+  for(let tk of smartWords(masked, 400)){
+    if(tk.length < 4 || tk.length > 253 || tk.indexOf('@') >= 0 || tk.indexOf('://') >= 0) continue;
+    tk = smartTrimPunct(tk);
+    const m = /^(?:[A-Za-z0-9][A-Za-z0-9-]*\.)+([A-Za-z]{2,24})$/.exec(tk);
+    if(m && SMART_TLDS.has(m[1].toLowerCase()) && !SMART_ISIP.test(tk)) return { host:tk.toLowerCase().replace(/^www\./, ''), url:'' };
+  }
+  return null;
+}
+const SMART_ROUTER = /\b(?:router|gateway|modem|access point|extender|nas|pi-?hole|pfsense|openwrt|admin (?:panel|page|console|interface))\b/i;
+function smartExtractStructuredFields(text, pre){
+  const t = smartPrep(text);
+  const f = { emails:[], urls:[], host:'', port:'', username:'', password:'', ssid:'', engine:'', json:null, dbname:'', dbextra:'', pin:'',
+    ssh:null, totp:null, wifiQr:null, env:null, site:null, ip:'', router:false, awsSecret:'', place:'', token:'', keyid:'', secretKey:'', webhook:'',
+    license:'', recovery:'', otp:'', question:'', answer:'', nameHint:'', notesHint:'', bare:false, curl:null, credUrl:null, scopes:'', remail:'', ado:false };
   let masked = t;
   try{
-    masked = masked.replace(/-----BEGIN (?:OPENSSH )?PRIVATE KEY-----[\s\S]*?-----END (?:OPENSSH )?PRIVATE KEY-----/g, s=>' '.repeat(s.length));
-    masked = masked.replace(/(postgres(?:ql)?|mysql|mariadb|mongodb(?:\+srv)?|redis):\/\/[^\s<>"']{4,300}/gi, s=>' '.repeat(s.length));
+    masked = masked.replace(/-----BEGIN (?:OPENSSH )?PRIVATE KEY-----[\s\S]*?-----END (?:OPENSSH )?PRIVATE KEY-----/g, s => ' '.repeat(s.length));
+    masked = masked.replace(/(postgres(?:ql)?|mysql|mariadb|mongodb(?:\+srv)?|redis):\/\/[^\s<>"']{4,300}/gi, s => ' '.repeat(s.length));
   }catch(_){}
+  f.curl = smartParseCurl(masked);
+  if(f.curl) masked = masked.slice(0, f.curl.start);
+  const cu = smartFindCredUrl(masked);
+  if(cu){ f.credUrl = cu; masked = masked.split(cu.token).join(' '.repeat(Math.min(cu.token.length, 400))); }
   try{
-    const em = masked.match(new RegExp(SMART_RE_EMAIL.source, 'g'));
-    if(em) f.emails = [...new Set(em.map(smartClean))].slice(0, 5);
+    f.emails = [...new Set(smartFindEmails(masked, 8).map(smartClean))].slice(0, 5);
     const urls = masked.match(new RegExp(SMART_RE_URL.source, 'g'));
     if(urls) f.urls = [...new Set(urls.map(smartClean))].slice(0, 5);
   }catch(_){}
+  if(f.curl && f.curl.url && f.urls.indexOf(f.curl.url) < 0) f.urls.unshift(f.curl.url);
+  if(cu && cu.url && f.urls.indexOf(cu.url) < 0) f.urls.unshift(cu.url);
   const cs0 = t.match(new RegExp(SMART_SIG_CONNSTR.source, 'i'));
   if(cs0){
     const cm = cs0[0].match(/^(postgres(?:ql)?|mysql|mariadb|mongodb(?:\+srv)?|redis):\/\/(?:([^:/@\s]+)(?::([^@\s]*))?@)?([^/:?\s]+)(?::(\d{2,5}))?(?:\/([^?\s]*))?/i);
@@ -3162,37 +4103,49 @@ function smartExtractStructuredFields(text){
       if(cm[4]) f.host = smartClean(cm[4]);
       if(cm[5]){ const n = Number(cm[5]); if(n >= 1 && n <= 65535) f.port = String(n); }
       if(cm[6]) f.dbname = smartClean(cm[6]);
-      if(cm[1] && !f.engine) f.engine = cm[1].toLowerCase().replace(/^(postgresql|mariadb)$/, s=>s === 'postgresql' ? 'postgres' : 'mysql');
+      if(cm[1] && !f.engine) f.engine = cm[1].toLowerCase().replace(/^(postgresql|mariadb)$/, s => s === 'postgresql' ? 'postgres' : 'mysql');
     }
   }
-  let m = t.match(SMART_RE_HOST); if(m) f.host = smartClean(m[1]);
-  m = t.match(SMART_RE_PORT); if(m){ const n = Number(m[1]); if(n >= 1 && n <= 65535) f.port = String(n); }
-  m = t.match(SMART_RE_USER); if(m) f.username = smartClean(m[1]);
-  const pi = t.search(SMART_RE_PASS);
-  if(pi >= 0){
-    const tail = t.slice(pi);
-    const pm = tail.match(/(?:passw(?:ord|d)|passwd|\bpwd\b|\bsecret\b)(?:\s+(?:is|was))?\s*(?:[:=]\s*|\s+(?:is|was)\s+)([^\n,;]{1,800})/i) || tail.match(/(?:passw(?:ord|d)|passwd|\bpwd\b|\bsecret\b)\s*[:=]\s*([^\n,;]{1,800})/i);
-    if(pm) f.password = smartClean(pm[1]);
+  /* the label scanner: every layout that puts a label next to a value */
+  const wifiCtx0 = SMART_RE_WIFI.test(masked) || /\bwi-?fi\b/i.test(t);
+  let adoPairs = [];
+  if(masked.indexOf(';') >= 0 && masked.indexOf('=') >= 0){
+    const ml = masked.split('\n', 600);
+    for(let li = 0; li < ml.length; li++){ const ap = smartAdoPairs(ml[li]); if(ap){ adoPairs = adoPairs.concat(ap); ml[li] = ' '.repeat(Math.min(ml[li].length, 2000)); } }
+    if(adoPairs.length){ masked = ml.join('\n'); f.ado = true; }
   }
-  /* Loose "label value" pairs (no colon), only when the chunk already shows a
-     credential signal plus a database/Wi-Fi/host context, so prose is not
-     misread. Values are single tokens; the preview stays editable. */
-  const looseOk = (f.host || f.emails.length || SMART_RE_APILABEL.test(t)) && (SMART_RE_DB.test(t) || SMART_RE_WIFI.test(t) || !!f.host);
-  const stopWord = v => /^(is|was|are|for|and|or|the|a|an|to|of|your|my)$/i.test(v);
-  if(!f.username && looseOk){ m = t.match(/\buser(?:name)?\s+([A-Za-z0-9@._-]{2,200})/i); if(m && !stopWord(m[1])) f.username = smartClean(m[1]); }
-  if(!f.password && looseOk){ m = t.match(/\bpassword\s+([^\s,;]{4,800})/i); if(m && !stopWord(m[1])) f.password = smartClean(m[1]); }
-  m = t.match(/(?:\bssid\b\s*[:=]\s*|\bssid\b\s+(?:is\s+)?)(["']?)([A-Za-z0-9 _.-]{2,80})\2/i)
-    || t.match(/(?:called|named)\s+["']?([A-Za-z0-9_.-]{2,40})/i)
-    || t.match(/(?:\bnetwork(?: name)?\b|\bwi-?fi\b)[^A-Za-z0-9\n]{0,12}(?:called\s+|named\s+)?["']?([A-Za-z0-9_.-]{2,40})/i);
-  if(m){ const s = smartClean(m[m.length - 1]).replace(/\s+and\s+.*$/i, '').trim(); if(s && !/^(is|called|named|the|password)$/i.test(s)) f.ssid = s; }
-  m = t.match(SMART_RE_ENGINE); if(m) f.engine = m[1].toLowerCase();
+  const pairs = ((pre && pre.pairs) ? pre.pairs.slice() : []).concat(adoPairs, smartScanPairs(masked, wifiCtx0), smartValueBeforeLabel(masked));
+  smartApplyPairs(f, pairs, wifiCtx0);
+  if(f.remail) f.emails = f.emails.filter(e => e !== f.remail);
+  if(cu){ if(!f.username) f.username = smartClean(cu.user); if(!f.password) f.password = smartClean(cu.pass); if(!f.host) f.host = cu.host; }
+  if(f.curl){ if(!f.username && f.curl.user) f.username = smartClean(f.curl.user); if(!f.password && f.curl.pass) f.password = smartClean(f.curl.pass); if(!f.token && f.curl.token) f.token = smartClean(f.curl.token); }
+  if(pre && pre.db){
+    const d = pre.db;
+    if(d.host) f.host = smartClean(d.host); if(d.port && /^\d{1,5}$/.test(d.port)) f.port = d.port;
+    if(d.username) f.username = smartClean(d.username); if(d.password) f.password = smartClean(d.password);
+    if(d.dbname) f.dbname = smartClean(d.dbname); if(d.engine) f.engine = d.engine;
+  }
+  /* older single-pattern fallbacks, only for what the scanner left empty */
+  let m;
+  if(!f.host){ m = masked.match(SMART_RE_HOST); if(m && !SMART_COMMON.has(m[1].toLowerCase())) f.host = smartClean(m[1]); }
+  if(!f.port){ m = masked.match(SMART_RE_PORT); if(m){ const n = Number(m[1]); if(n >= 1 && n <= 65535) f.port = String(n); } }
+  const wifiCtx = SMART_RE_WIFI.test(masked);
+  if(!f.ssid && wifiCtx){
+    m = masked.match(/(?:\bssid\b\s*[:=]\s*|\bssid\b\s+(?:is\s+)?)(["']?)([A-Za-z0-9 _.-]{2,80})\1/i)
+      || masked.match(/(?:called|named)\s+["']?([A-Za-z0-9_.-]{2,40})/i)
+      || masked.match(/(?:\bnetwork(?: name)?\b|\bwi-?fi\b)[^A-Za-z0-9\n]{0,12}(?:called\s+|named\s+)?["']?([A-Za-z0-9_.-]{2,40})/i);
+    if(m){ const s = smartClean(m[m.length - 1]).replace(/\s+(?:and|with|pass(?:word)?|pw|pwd|psk)\b.*$/i, '').trim(); if(s && !/^(?:is|called|named|the|password|pass|pw|at|in|my|our|and)$/i.test(s)) f.ssid = s; }
+  }
+  if(wifiCtx){ const pm = /\bwi-?fi\s+(?:at|in|for)\s+(?:the\s+|my\s+)?([A-Za-z0-9' ]{2,40}?)\s+(?:is|called|named)\b/i.exec(masked); if(pm) f.place = smartClean(pm[1]); }
+  m = masked.match(SMART_RE_ENGINE); if(m) f.engine = m[1].toLowerCase();
   const trimmed = t.trim();
   if(trimmed.charAt(0) === '{' && trimmed.length < 20000){
     try{
       const o = JSON.parse(trimmed);
       if(o && typeof o === 'object' && !Array.isArray(o)){
         const g = k => { for(const key of Object.keys(o)){ if(key.toLowerCase() === k && typeof o[key] === 'string') return smartClean(o[key]); } return ''; };
-        f.json = { username: g('username') || g('user'), email: g('email'), password: g('password') || g('secret'), host: g('host') || g('hostname'), port: g('port'), dbname: g('dbname') || g('database'), token: g('token') || g('apikey') || g('api_key') };
+        f.json = { username:g('username') || g('user'), email:g('email'), password:g('password') || g('secret'), host:g('host') || g('hostname'), port:g('port'), dbname:g('dbname') || g('database'), token:g('token') || g('apikey') || g('api_key') };
+        smartApplyPairs(f, smartJsonPairs(o, 0, []));
       }
     }catch(_){ f.json = null; }
   }
@@ -3202,65 +4155,322 @@ function smartExtractStructuredFields(text){
     if(!f.host && f.json.host) f.host = f.json.host;
     if(!f.port && f.json.port && /^\d{2,5}$/.test(f.json.port)) f.port = f.json.port;
   }
-  return f;
-}
-function smartInferProvider(text, creds, fields){
-  const t = String(text == null ? '' : text);
-  if(creds && creds.length && creds[0].providerId){
-    const p = SMART_PROVIDERS.find(x=>x.id === creds[0].providerId);
-    if(p){
-      if(p.id === 'openai' && !p.ctx.test(t)) return null;   // bare sk-... never becomes OpenAI
-      return p;
+  /* machine formats */
+  f.totp = smartParseOtpauth(t);
+  if(!f.totp){ const b = smartFindBase32(t) || (f.otp ? smartFindBase32(' 2fa ' + f.otp) : ''); if(b) f.totp = { uri:false, secret:b, issuer:'', account:'' }; else if(f.otp && f.otp.length >= 8) f.totp = { uri:false, secret:f.otp.replace(/[\s-]/g, '').toUpperCase().slice(0, 128), issuer:'', account:'' }; }
+  f.wifiQr = smartParseWifiQr(t);
+  if(f.wifiQr){ f.ssid = f.wifiQr.ssid; if(f.wifiQr.password) f.password = f.wifiQr.password; }
+  f.ssh = (pre && pre.ssh) ? pre.ssh : (smartParseSshCmd(masked) || smartFindUserAtHost(masked));
+  if(f.ssh){ f.host = f.ssh.host; if(f.ssh.user) f.username = f.ssh.user; if(f.ssh.port) f.port = f.ssh.port; }
+  const ev = smartEnvLine(trimmed.split('\n')[0] || '');
+  if(ev && !smartLabelCanon(ev.name, false) && smartEnvCredLike(ev)){ f.env = ev; if(!f.password) f.password = ev.value; }
+  for(const tk of smartWords(masked, 400)){ const ip = smartTrimPunct(tk).replace(/:\d{1,5}$/, ''); if(SMART_ISIP.test(ip)){ f.ip = ip; break; } }
+  f.router = SMART_ROUTER.test(masked) && (!!f.ip || !!f.host);
+  if(f.ip && !f.host && (f.router || f.username || f.password || /\b(?:server|ssh|host|vps|login|admin|panel|console|camera)\b/i.test(masked))) f.host = f.ip;
+  if(/\b(?:AKIA|ASIA)[0-9A-Z]{16}\b/.test(masked)) f.awsSecret = smartFindAwsSecret(masked);
+  f.site = smartSiteFrom(f, masked);
+  /* a bare value next to an email or a username is the password: "Netflix bob@x.com Fb7!kq", "bob@x.com:Fb7!kq", "host\nemail\nsecret" */
+  if(!f.username && f.password && !f.emails.length){ const wu = smartWeakUser(masked); if(wu) f.username = wu; }
+  if(!f.username && f.password){ for(const tk of smartWords(masked, 200)){ if(/^@[A-Za-z0-9_.]{2,30}$/.test(tk)){ f.username = tk; break; } } }
+  if(!f.password && !f.token && !f.ssh && !f.totp){
+    const sp = smartSlashPair(masked);
+    if(sp){
+      if(smartFindEmails(sp.a, 1)[0] === sp.a){ if(f.emails.indexOf(sp.a) < 0) f.emails.unshift(sp.a); } else if(!f.username) f.username = smartClean(sp.a);
+      f.password = sp.b; f.bare = true;
     }
   }
-  for(const p of SMART_PROVIDERS){
-    if(p.id === 'openai') continue;   // openai needs its signature; a mere mention is not enough
-    if(p.ctx.test(t)){
-      if(p.sig.test(t)) return p;
-      if(fields && ((fields.password && (SMART_RE_APILABEL.test(t) || /token/i.test(t))) || (p.id === 'aws' && fields.username))) return p;
+  if(!f.password && !f.token && !f.ssh && !f.totp && (f.emails.length || f.username)){
+    const bare = smartBareSecret(masked, f, pairs);
+    if(bare && bare.pw){ f.password = bare.pw; f.bare = true; if(bare.name && !f.nameHint) f.nameHint = bare.name; }
+  }
+  if(!f.password && !f.token && !f.ssh && !f.totp){
+    const pr = smartPositional(masked, f, pairs);
+    if(pr){ if(pr.user && !f.username) f.username = pr.user; f.password = pr.pass; f.bare = true; }
+  }
+  return f;
+}
+/* "Login kai528, pw hunter2": once a password is labelled, a plain weak label (login, account, handle...) may name the user by position */
+const SMART_COMMON_TLDS = new Set(['com','net','org','io','dev','app','co','ai','me','tv','gg','us','uk','de','fr','ca','au','info','biz','edu','gov','xyz']);
+/* "alex.cloud" is far likelier a user name than a website: only the everyday TLDs make a bare word a domain here */
+function smartRealDomain(v){ const m = /\.([A-Za-z]{2,24})$/.exec(String(v)); return smartLooksHost(v) && (/^[a-z][a-z0-9+.-]{1,12}:\/\//i.test(v) || SMART_ISIP.test(v) || !!(m && SMART_COMMON_TLDS.has(m[1].toLowerCase()))); }
+function smartWeakUser(masked){
+  for(const line of String(masked).split('\n', 200)){
+    const ch = line.trim().split(/ +/).slice(0, 120);
+    for(let k = 0; k < ch.length - 1; k++){
+      const key = smartCompact(ch[k].replace(/[,;:]+$/, ''));
+      if(!key || SMART_LABELS.get(key) !== 'username' || !SMART_WEAK.has(key)) continue;
+      const v = smartClean(ch[k + 1].replace(/[,;]+$/, ''));
+      if(!v || v.length > 64 || SMART_COMMON.has(v.toLowerCase()) || SMART_SEP_CHUNKS.has(v) || smartLabelCanon(v, false) || smartRealDomain(v)) continue;
+      return v;
+    }
+  }
+  return '';
+}
+function smartSecretish(c){
+  return (/[0-9]/.test(c) && /[^A-Za-z0-9]/.test(c)) || (/[a-z]/.test(c) && /[A-Z]/.test(c) && /[0-9]/.test(c)) || (/[0-9]/.test(c) && c.length >= 6);
+}
+function smartStrongSecret(c){
+  return c.length >= 6 && /[A-Za-z]/.test(c) && /[0-9]/.test(c) && (/[^A-Za-z0-9]/.test(c) || (/[a-z]/.test(c) && /[A-Z]/.test(c)));
+}
+/* "reddit bobby Lemon77#" / "bobby Lemon77# reddit" / "reddit.com Lemon77#": no labels at all, so use the shape of each word */
+function smartSecretScore(c){ return (/[A-Z]/.test(c) ? 1 : 0) + (/[a-z]/.test(c) ? 1 : 0) + (/[0-9]/.test(c) ? 1 : 0) + (/[^A-Za-z0-9]/.test(c) ? 1 : 0) + (c.length >= 10 ? 1 : 0); }
+function smartPositional(masked, f, pairs){
+  const toks = String(masked).split(/[\s|,;]+/).filter(Boolean).slice(0, 9);
+  if(toks.length < 2 || toks.length > 7) return null;
+  let hasSite = !!f.site;
+  const others = [];
+  const known = new Set((pairs || []).map(p => String(p.value).toLowerCase()));
+  if(f.username) known.add(f.username.toLowerCase());
+  for(const tk of toks){
+    const clean = smartTrimPunct(tk), lw = clean.toLowerCase(), raw = tk.replace(/[,;]+$/, '').replace(/^\(+|\)+$/g, '');
+    if(!lw || SMART_SEP_CHUNKS.has(tk) || tk === '/') continue;
+    if(smartFindEmails(tk, 1).length) continue;
+    if(smartLooksHost(clean) || smartPlatformMention(clean)){ hasSite = true; continue; }
+    if(smartMatchLabel([tk], 0) || smartLabelCanon(clean, false) || known.has(lw)) continue;      // labels, "label=value" and values already taken are not candidates
+    others.push(raw);
+  }
+  if(!hasSite) return null;
+  let sec = others.filter(smartSecretish);
+  if(sec.length > 1){ const best = Math.max(...sec.map(smartSecretScore)); const top = sec.filter(c => smartSecretScore(c) === best); sec = [top[top.length - 1]]; }
+  if(sec.length !== 1) return null;
+  const pw = sec[0];
+  const users = others.filter(x => x !== pw && x.length >= 2 && x.length <= 64 && /^[A-Za-z0-9@._-]+$/.test(x) && !SMART_COMMON.has(x.toLowerCase()) && !smartLabelCanon(x, false));
+  if(f.emails.length) return users.length === 0 ? { user:'', pass:pw } : null;
+  if(users.length > 1) return null;
+  return { user:users[0] || '', pass:pw };
+}
+/* "Orange55! is the password for bob@x.com": the value comes first */
+function smartValueBeforeLabel(masked){
+  const out = [];
+  const re = /(\S{4,200})\s+(?:is|was)\s+(?:the|my|his|her|our|their)\s+(password|passwd|pass|pw|pwd|passcode|username|user name|user|login|email|e-mail)(?=[\s,.;:!?)]|$)/gi;
+  let m, n = 0;
+  while(n++ < 6 && (m = re.exec(masked))){
+    const r = smartLabelCanon(m[2], false), v = smartClean(m[1]);
+    if(r && v && !SMART_COMMON.has(v.toLowerCase()) && smartShapeOk(r.canon, v)) out.push({ canon:r.canon, value:v, label:m[2], explicit:true });
+  }
+  return out;
+}
+/* SQL Server / ODBC style: Server=tcp:db.example.com,1433;Database=main;User Id=sa;Password=...; */
+const SMART_ADO_KEYS = { server:'host', 'data source':'host', host:'host', address:'host', addr:'host', 'network address':'host', database:'dbname', 'initial catalog':'dbname', dbname:'dbname', 'user id':'username', uid:'username', user:'username', username:'username', userid:'username', password:'password', pwd:'password', port:'port' };
+function smartAdoPairs(line){
+  if(line.length > 2000 || line.indexOf(';') < 0 || line.indexOf('=') < 0) return null;
+  const segs = line.split(';', 30);
+  const out = []; let hits = 0, hasPw = false;
+  for(const seg of segs){
+    const m = /^\s*([A-Za-z][A-Za-z0-9 _.-]{1,30}?)\s*=\s*(.*)$/.exec(seg);
+    if(!m) continue;
+    const canon = SMART_ADO_KEYS[m[1].toLowerCase().replace(/\s+/g, ' ').trim()];
+    if(!canon) continue;
+    let v = smartClean(m[2]); if(!v) continue;
+    hits++;
+    if(canon === 'host'){ v = v.replace(/^tcp:/i, ''); const c = v.indexOf(','); if(c > 0 && /^\d{1,5}$/.test(v.slice(c + 1))){ out.push({ canon:'port', value:v.slice(c + 1), label:'port', explicit:true }); v = v.slice(0, c); } }
+    if(canon === 'password') hasPw = true;
+    out.push({ canon, value:v, label:m[1], explicit:true });
+  }
+  return (hits >= 3 && hasPw) ? out : null;
+}
+const SMART_INTENT_NOUN = '(?:site|website|web site|account|acct|app|login|portal|service|page|profile|membership|subscription)';
+const SMART_INTENT_FOR = new RegExp("\\bfor\\s+(?:the\\s+|my\\s+|our\\s+|your\\s+)?([A-Za-z][A-Za-z0-9&'.-]*(?:\\s+[A-Za-z][A-Za-z0-9&'.-]*){0,2})\\s+" + SMART_INTENT_NOUN + "\\b", 'i');
+const SMART_INTENT_LOGIN = /(?:^|[\s,;(])([A-Za-z][A-Za-z0-9&'.-]{1,24})\s+(?:login|account|acct|creds|credentials)\b/i;
+function smartIntentName(t){
+  const s = String(t).slice(0, 4000);
+  const tidy = raw => {
+    const w = String(raw).trim().split(/\s+/).filter(x => x && !SMART_COMMON.has(x.toLowerCase()) && !SMART_DET.has(x.toLowerCase()));
+    const nm = w.slice(0, 3).join(' ');
+    if(nm.length < 2 || nm.length > 40 || smartLabelCanon(nm, false)) return '';
+    return /[A-Z]/.test(nm) ? nm : smartTitle(nm);
+  };
+  let m = SMART_INTENT_FOR.exec(s);
+  if(m){ const n = tidy(m[1]); if(n) return n; }
+  m = SMART_INTENT_LOGIN.exec(s);
+  if(m){ const n = tidy(m[1]); if(n) return n; }
+  return '';
+}
+function smartSlashPair(masked){
+  for(const line of String(masked).split('\n', 200)){
+    const ch = line.trim().split(/ +/).slice(0, 120);
+    for(let k = 1; k < ch.length - 1; k++){
+      if(ch[k] !== '/' && ch[k] !== '|') continue;
+      const a = smartTrimPunct(ch[k - 1]), b = ch[k + 1].replace(/[,;]+$/, '');
+      if(!a || !b || a.length > 200 || b.length > 300) continue;
+      if(smartRealDomain(a) || smartLooksHost(b) || SMART_SEP_CHUNKS.has(b) || SMART_COMMON.has(b.toLowerCase()) || SMART_CONJ.has(a.toLowerCase())) continue;
+      const lb = smartLabelCanon(b, false); if(lb && !SMART_WEAK.has(lb.key)) continue;
+      return { a, b: smartClean(b) };
     }
   }
   return null;
 }
-function smartClassifyInput(text){
+function smartBareSecret(masked, f, pairs){
+  const known = new Set();
+  for(const p of pairs) known.add(String(p.value).toLowerCase());
+  for(const e of f.emails) known.add(e.toLowerCase());
+  const cands = []; let others = 0;
+  for(let tk of smartWords(masked, 80)){
+    tk = tk.replace(/[,;]+$/, '');
+    if(!tk || known.has(tk.toLowerCase())) continue;
+    if(SMART_SEP_CHUNKS.has(tk) || tk === '/' || tk === '\\' || tk === ':') continue;
+    if(tk.indexOf('@') > 0 && smartFindEmails(tk, 1).length) continue;
+    if(/^https?:\/\//i.test(tk) || smartLooksHost(smartTrimPunct(tk))) continue;
+    const lw = smartTrimPunct(tk).toLowerCase();
+    if(!lw) continue;
+    if(Object.prototype.hasOwnProperty.call(SMART_PLAT, lw)) continue;
+    if(SMART_COMMON.has(lw) || SMART_CONJ.has(lw) || SMART_STOPW.has(lw) || SMART_COPULA.has(lw)){ others++; continue; }
+    const L = smartLabelCanon(smartTrimPunct(tk), false);
+    if(L || smartMatchLabel([tk], 0)){ others++; continue; }      // a label (or label=value glued together) is never a bare secret
+    cands.push(tk);
+    if(cands.length > 6) return null;
+  }
+  if(cands.length === 1 && others === 0) return { pw:smartClean(cands[0]), name:'' };
+  const score = c => (/[0-9]/.test(c) ? 1 : 0) + (/[^A-Za-z0-9]/.test(c) ? 1 : 0) + (/[a-z]/.test(c) && /[A-Z]/.test(c) ? 1 : 0) + (c.length >= 8 ? 1 : 0);
+  const good = cands.filter(c => c.length >= 6 && (score(c) >= 2 || (/[0-9]/.test(c) && c.length >= 6)));
+  if(good.length === 1){
+    const other = cands.filter(c => c !== good[0]);
+    const nm = (other.length === 1 && others === 0 && /^[A-Za-z][A-Za-z '&.-]{1,23}$/.test(other[0])) ? other[0] : '';
+    return { pw:smartClean(good[0]), name:nm };
+  }
+  return null;
+}
+function smartExtractCredentials(text, fields){
+  const t = smartPrep(text);
+  const out = [], seen = new Set();
+  const take = (value, providerId, extra) => {
+    const v = smartClean(value);
+    if(v.length < 8 || seen.has(v)) return;
+    seen.add(v); out.push(Object.assign({ value:v, providerId:providerId || null }, extra || {}));
+  };
+  /* every signature hit, then drop any hit that sits inside a longer one (a PyPI token can contain "hf_..." by chance) */
+  const hits = [];
+  SMART_PROVIDERS.forEach((p, order) => {
+    if(p.ctxOnly) return;
+    p.gsig.lastIndex = 0;
+    let m, n = 0;
+    while(n++ < 6 && (m = p.gsig.exec(t))){ if(!m[0].length){ p.gsig.lastIndex++; continue; } hits.push({ id:p.id, order, s:m.index, e:m.index + m[0].length, v:m[0] }); }
+  });
+  for(const h of hits){
+    const inside = hits.some(g => g !== h && g.s <= h.s && g.e >= h.e && ((g.e - g.s) > (h.e - h.s) || ((g.e - g.s) === (h.e - h.s) && g.order < h.order)));
+    if(!inside) take(h.v, h.id);
+  }
+  if(out.some(c => c.providerId === 'aws')){ const s = smartFindAwsSecret(t); if(s) take(s, 'aws', { awsSecret:true }); }
+  const pk = t.match(/-----BEGIN (?:OPENSSH )?PRIVATE KEY-----[\s\S]{0,8000}?-----END (?:OPENSSH )?PRIVATE KEY-----/);
+  if(pk) take(pk[0], null);
+  else if(SMART_SIG_PRIVKEY.test(t)) take('private-key-present', null);
+  const cs = t.match(new RegExp(SMART_SIG_CONNSTR.source, 'i'));
+  if(cs) take(cs[0], null);
+  const bearer = t.match(/\bbearer\s+([A-Za-z0-9\-._~+\/=]{10,400})/i);
+  if(bearer) take(bearer[1], null);
+  const f = fields || smartExtractStructuredFields(text);
+  if(f.token) take(f.token, null, { labelled:true });
+  if(f.secretKey) take(f.secretKey, null, { labelled:true });
+  return out.slice(0, 8);
+}
+function smartWhy(p, tok, t){
+  const m = String(tok).match(/^[A-Za-z0-9]{1,10}[-_.]/);
+  let s = 'Matched the ' + p.label + ' pattern' + (m ? ' (prefix "' + m[0] + '")' : '') + ', ' + String(tok).length + ' characters';
+  if(p.ctx.test(t)) s += ', and you mentioned ' + (p.platName || p.name.replace(/ (Key|Token|Secret)$/, ''));
+  return s + '.';
+}
+function smartInferProvider(text, creds, fields, ctxText){
   const t = String(text == null ? '' : text);
-  const creds = smartExtractCredentials(t);
-  const fields = smartExtractStructuredFields(t);
-  const provider = smartInferProvider(t, creds, fields);
+  const tc = ctxText == null ? t : String(ctxText);
+  if(creds && creds.length && creds[0].providerId){
+    const p = SMART_PROVIDERS.find(x => x.id === creds[0].providerId);
+    if(p){
+      if(p.id === 'openai' && !p.ctx.test(t)) return null;   /* bare sk-... never becomes OpenAI */
+      return p;
+    }
+  }
+  const hasSecret = !!(creds && creds.length);
+  for(const p of SMART_PROVIDERS){
+    if(p.id === 'openai') continue;   /* openai needs its signature; a mere mention is not enough */
+    if(p.ctx.test(tc)){
+      if(!p.ctxOnly && p.sig.test(t)) return p;
+      if(p.ctxOnly && (hasSecret || (fields && fields.password))) return p;
+      if(!p.ctxOnly && fields && ((fields.password && (SMART_RE_APILABEL.test(tc) || /token/i.test(tc))) || (p.id === 'aws' && fields.username))) return p;
+    }
+  }
+  return null;
+}
+function smartGuessLabel(t){
+  const m = /\b(?:my|our|the)?\s*([A-Za-z0-9][A-Za-z0-9 _-]{1,30}?)\s+(?:api\s+)?(?:token|key|secret)\b/i.exec(t);
+  if(!m) return '';
+  const w = m[1].trim().split(/\s+/).filter(x => !SMART_COMMON.has(x.toLowerCase()) && !/^(?:api|new|save|add|this|here)$/i.test(x));
+  return w.length ? smartTitle(w.slice(-3).join(' ')) + ' token' : '';
+}
+function smartClassifyInput(text, pre){
+  const raw = String(text == null ? '' : text);
+  const t = smartPrep(raw);
+  const fields = smartExtractStructuredFields(raw, pre);
+  const creds = smartExtractCredentials(raw, fields);
+  let tctx = t;
+  for(const sv of [fields.password, fields.token, fields.secretKey]){ if(sv && sv.length >= 4) tctx = tctx.split(sv).join(' '); }
+  const provider = smartInferProvider(t, creds, fields, tctx);
   const secret0 = creds.length ? creds[0].value : '';
-  const saysKind = (re) => re.test(t);
-  if(SMART_SIG_PRIVKEY.test(t)) return { kind:'ssh', provider:null, confidence:SMART_CONF.HIGH, reason:'OpenSSH private-key header detected.', creds, fields };
+  const saysKind = re => re.test(t);
+  const base = (kind, confidence, reason, extra) => Object.assign({ kind, provider:null, confidence, reason, creds, fields }, extra || {});
+  const site = fields.site;
+  const loginReason = (what) => site ? what + ' for ' + site.host + ' detected.' : what + ' detected.';
+  if(pre && pre.db) return base('database', (fields.host && (fields.password || fields.username)) ? SMART_CONF.HIGH : SMART_CONF.MED, pre.reason || 'Grouped database variables.', { engine:pre.db.engine || '' });
+  if(fields.ado && fields.host && (fields.password || fields.username)) return base('database', SMART_CONF.HIGH, 'SQL Server style connection string detected for ' + fields.host + '.', { engine:fields.engine || '' });
+  if(fields.totp) return base('api_key', fields.totp.uri ? SMART_CONF.HIGH : SMART_CONF.MED, fields.totp.uri ? 'Authenticator setup link (otpauth://) detected: it holds a two-factor secret.' : 'Base32 text next to a 2FA word looks like a two-factor secret.', { totp:true });
+  if(SMART_SIG_PRIVKEY.test(t)) return base('ssh', SMART_CONF.HIGH, 'OpenSSH private-key header detected.');
+  if(fields.wifiQr) return base('login', SMART_CONF.HIGH, 'Wi-Fi QR text (WIFI:...) detected: network "' + fields.wifiQr.ssid + '"' + (fields.wifiQr.password ? ' with a password.' : '.'), { wifi:true });
   const cs = t.match(new RegExp(SMART_SIG_CONNSTR.source, 'i'));
   if(cs){
     let engine = ''; const em = t.match(SMART_RE_ENGINE); if(em) engine = em[1].toLowerCase();
-    return { kind:'database', provider:null, engine, confidence:SMART_CONF.HIGH, reason:'Database connection string detected.', creds, fields };
+    return base('database', SMART_CONF.HIGH, 'Database connection string detected' + (fields.host ? ' for ' + fields.host : '') + '.', { engine });
   }
   if(provider){
-    if(provider.id === 'aws' && !/AKIA[0-9A-Z]{16}/.test(t) && !(fields.username && fields.password))
-      return { kind:'api_key', provider, confidence:SMART_CONF.MED, reason:'AWS mentioned with partial credentials.', creds, fields };
-    return { kind:provider.kind, provider, confidence:SMART_CONF.HIGH, reason:'Distinctive ' + provider.label + ' signature detected.', creds, fields };
+    if(provider.id === 'aws' && !/(?:AKIA|ASIA)[0-9A-Z]{16}/.test(t) && !(fields.username && fields.password))
+      return base('api_key', SMART_CONF.MED, 'AWS mentioned with partial credentials.', { provider });
+    const tok = creds.length ? creds[0].value : '';
+    const reason = provider.ctxOnly ? 'You named ' + (provider.platName || provider.name) + ' next to a labelled secret.' : smartWhy(provider, tok, t);
+    const extra = { provider };
+    if(provider.id === 'aws' && creds.some(c => c.awsSecret)) { extra.awsPair = true; extra.reason2 = ' The matching secret access key was found too and is saved with it.'; }
+    return base(provider.kind, SMART_CONF.HIGH, reason + (extra.reason2 || ''), extra);
   }
+  if(fields.curl && (fields.token || (fields.username && fields.password))){
+    return fields.token ? base('api_key', SMART_CONF.MED, 'curl command with an API token header' + (site ? ' for ' + site.host : '') + '.', { curl:true }) : base('login', SMART_CONF.MED, 'curl command with a user and password' + (site ? ' for ' + site.host : '') + '.', { curl:true });
+  }
+  if(fields.ssh) return base('ssh', (fields.ssh.user || (pre && pre.ssh)) ? SMART_CONF.HIGH : SMART_CONF.MED, (pre && pre.ssh) ? 'SSH config entry "' + (fields.ssh.alias || fields.ssh.host) + '" detected.' : 'SSH target ' + (fields.ssh.user ? fields.ssh.user + '@' : '') + fields.ssh.host + ' detected.');
+  if(fields.env){
+    const n = fields.env.name, isPw = /(?:PASSWORD|PASSWD|PWD|PASS)(?:_|$)/i.test(n);
+    return base(isPw ? 'login' : 'api_key', SMART_CONF.MED, 'Environment variable ' + n + ' holds a ' + (isPw ? 'password' : 'secret') + '.', { envName:n });
+  }
+  if(fields.keyid && fields.secretKey && !fields.password) return base('api_key', SMART_CONF.MED, 'A key ID with its secret was found.', { keyPair:true });
+  if(fields.secretKey && !fields.password && !fields.token) return base('api_key', SMART_CONF.MED, 'A labelled secret key was found.');
+  const hi = (!fields.password && !fields.username && !fields.emails.length && !fields.ssid && !fields.token && !fields.license) ? smartFindHighEntropy(t) : null;
+  if(hi) return base('api_key', SMART_CONF.MED, 'High-entropy token (' + hi.length + ' characters, about ' + hi.bits.toFixed(1) + ' bits per character) that matches no known provider, so it is probably a secret. No provider is claimed.', { creds:[{ value:hi.token, providerId:null, entropy:true }], entropy:true });
   if(secret0 && /^sk-(?:proj-)?[A-Za-z0-9_-]{20,}/.test(secret0))
-    return { kind:'api_key', provider:null, confidence:SMART_CONF.MED, reason:'Generic API-key shape; provider not claimed.', creds, fields };
+    return base('api_key', SMART_CONF.MED, 'Generic API-key shape; provider not claimed.');
   const hasSsid = !!fields.ssid || SMART_RE_WIFI.test(t);
   if(hasSsid && (fields.password || fields.ssid))
-    return { kind:'login', provider:null, wifi:true, confidence:(fields.ssid && fields.password) ? SMART_CONF.HIGH : SMART_CONF.MED, reason:'Wi-Fi network and password detected.', creds, fields };
+    return base('login', (fields.ssid && fields.password) ? SMART_CONF.HIGH : SMART_CONF.MED, 'Wi-Fi network' + (fields.ssid ? ' "' + fields.ssid + '"' : '') + ' and password detected.', { wifi:true });
+  if(fields.router && (fields.password || fields.username)) return base('login', SMART_CONF.MED, 'Router or device admin login detected' + (fields.host ? ' at ' + fields.host : '') + '.', { router:true });
   const hasEngine = SMART_RE_DB.test(t);
   if(fields.host && (fields.username || fields.password)){
-    if(hasEngine || saysKind(/\bdatabase\b|\bdb\b/i)) return { kind:'database', provider:null, engine:fields.engine, confidence:SMART_CONF.MED, reason:'Database host with credentials detected.', creds, fields };
-    if(SMART_RE_SSH.test(t) || saysKind(/\bserver\b|\bssh\b|\bhost\b/i)) return { kind:'ssh', provider:null, confidence:SMART_CONF.MED, reason:'Server host with credentials detected.', creds, fields };
-    if(fields.password || fields.username) return { kind:'login', provider:null, confidence:SMART_CONF.MED, reason:'Host with login details detected.', creds, fields };
+    if(hasEngine || saysKind(/\bdatabase\b|\bdb\b/i)) return base('database', SMART_CONF.MED, 'Database host with credentials detected.', { engine:fields.engine });
+    if(SMART_RE_SSH.test(t) || saysKind(/\bserver\b|\bssh\b|\bhost\b/i)) return base('ssh', SMART_CONF.MED, 'Server host with credentials detected.');
+    if(fields.password || fields.username) return base('login', SMART_CONF.MED, 'Host with login details detected.');
   }
-  if(fields.host && saysKind(/\bserver\b/i)) return { kind:'ssh', provider:null, confidence:SMART_CONF.MED, reason:'Server host detected.', creds, fields };
-  if((fields.emails.length || fields.username) && fields.password) return { kind:'login', provider:null, confidence:SMART_CONF.MED, reason:'Login details detected.', creds, fields };
-  if(secret0 || (SMART_RE_APILABEL.test(t) && fields.password)) return { kind:'api_key', provider:null, confidence:SMART_CONF.MED, reason:'Likely a token or API key.', creds, fields };
-  if(saysKind(/\blicen[sc]e\b|\brecovery code\b/) && /[A-Za-z0-9][A-Za-z0-9-]{7,}/.test(t)) return { kind:'login', provider:null, license:true, confidence:SMART_CONF.MED, reason:'License or recovery code detected.', creds, fields };
-  if(fields.emails.length || fields.username || fields.host) return { kind:'login', provider:null, confidence:SMART_CONF.MED, reason:'Partial account details detected.', creds, fields };
-  return { kind:'login', provider:null, note:true, confidence:SMART_CONF.LOW, reason:'Not enough evidence for a specific type.', creds, fields };
+  if(fields.host && saysKind(/\bserver\b/i)) return base('ssh', SMART_CONF.MED, 'Server host detected.');
+  if((fields.emails.length || fields.username) && fields.password) return base('login', SMART_CONF.MED, loginReason(fields.bare ? 'Login details (value paired by position)' : 'Login details'));
+  if(fields.license || fields.recovery) return base('login', SMART_CONF.MED, 'License or recovery code detected.', { license:true });
+  if(secret0 || (SMART_RE_APILABEL.test(t) && fields.password)) return base('api_key', SMART_CONF.MED, 'Likely a token or API key.');
+  if(fields.pin && !fields.password) return base('login', SMART_CONF.MED, 'A PIN or short code with a label was detected.', { pinOnly:true });
+  if(fields.password && !fields.emails.length && !fields.username) return base('login', SMART_CONF.MED, 'A labelled password was detected.');
+  if(saysKind(/\blicen[sc]e\b|\brecovery code\b/) && /[A-Za-z0-9][A-Za-z0-9-]{7,}/.test(t)) return base('login', SMART_CONF.MED, 'License or recovery code detected.', { license:true });
+  if(fields.emails.length || fields.username || fields.host || site) return base('login', SMART_CONF.MED, loginReason('Partial account details'));
+  return base('login', SMART_CONF.LOW, 'Not enough evidence for a specific type.', { note:true });
 }
-function smartCatalogByKey(key){ try{ return CATALOG.find(c=>c.key === key) || null; }catch(_){ return null; } }
+function smartCatalogByKey(key){ try{ return CATALOG.find(c => c.key === key) || null; }catch(_){ return null; } }
 function smartCatalogMention(t){
   try{ for(const c of CATALOG){ if(new RegExp('\\b' + c.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'i').test(t)) return c; } }catch(_){}
+  const al = smartPlatformMention(t);
+  if(al){
+    const c = smartCatalogByKey(al.key);
+    if(c) return c;
+    return { key:'custom:' + al.key, name:al.name, color:'#c9a86a', custom:true };
+  }
   return null;
 }
 function smartSelectTemplate(cls, fields, text){
@@ -3271,33 +4481,52 @@ function smartSelectTemplate(cls, fields, text){
   const saveAs = t.match(SMART_RE_SAVEAS);
   const mentioned = smartCatalogMention(t);
   const engineName = f.engine ? f.engine.charAt(0).toUpperCase() + f.engine.slice(1) : '';
+  const site = f.site;
   if(prov && prov.platformKey){
     const c = smartCatalogByKey(prov.platformKey);
     if(c){ platformKey = c.key; platformName = c.name; color = c.color; }
-    else { platformKey = 'custom:' + prov.id; platformName = prov.label.replace(/ (credential|token|key)$/, ''); }
+    else { platformKey = 'custom:' + (prov.group || prov.id); platformName = prov.platName || prov.label.replace(/ (credential|token|key)$/, ''); }
   } else if(prov){
-    platformKey = 'custom:' + prov.id; platformName = prov.platName || prov.label.replace(/ (credential|token|key)$/, '');
+    platformKey = 'custom:' + (prov.group || prov.id); platformName = prov.platName || prov.label.replace(/ (credential|token|key)$/, '');
+  } else if(cls.totp && f.totp && f.totp.issuer){
+    const c = smartCatalogMention(f.totp.issuer);
+    if(c){ platformKey = c.key; platformName = c.name; color = c.color; }
+    else { platformKey = 'custom:' + f.totp.issuer.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60); platformName = f.totp.issuer.slice(0, SMART_CAPS.name); }
   } else if(mentioned){
-    platformKey = mentioned.key; platformName = mentioned.name; color = mentioned.color;
+    platformKey = mentioned.key; platformName = mentioned.name; color = mentioned.color || color;
   } else if(saveAs){
     const nm = smartClean(saveAs[1]).slice(0, SMART_CAPS.name);
     platformKey = 'custom:' + nm.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60) || 'custom:saved-item';
     platformName = nm || 'Saved Item';
+  } else if(f.nameHint && !cls.note && kind !== 'database' && kind !== 'ssh'){
+    const nm = f.nameHint.slice(0, SMART_CAPS.name);
+    platformKey = 'custom:' + (nm.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60) || 'saved-item'); platformName = nm;
+  } else if(!cls.note && !cls.wifi && !cls.router && (kind === 'login' || kind === 'api_key') && smartIntentName(t)){
+    const nm = smartIntentName(t);
+    platformKey = 'custom:' + (nm.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60) || 'saved-item'); platformName = nm;
+  } else if(cls.router){
+    platformKey = 'custom:router'; platformName = 'Router';
   } else if(cls.wifi){
     platformKey = 'custom:wifi'; platformName = 'Wi-Fi';
-  } else if(kind === 'database'){
-    platformKey = 'custom:database'; platformName = engineName ? engineName + ' Database' : 'Database';
-  } else if(kind === 'ssh'){
-    platformKey = 'custom:server'; platformName = 'Server';
-  } else if(cls.note){
-    platformKey = 'custom:secure-notes'; platformName = 'Secure Notes';
-  } else {
-    platformKey = 'custom:smart-add'; platformName = 'Smart Add';
+  } else if(site && (kind === 'login' || kind === 'api_key') && !cls.note){
+    const p = smartPlatformFromHost(site.host);
+    if(p){ platformKey = p.key; platformName = p.name; color = p.color || color; }
   }
-  if(!platformKey) platformKey = 'custom:smart-add';
-  if(!platformName) platformName = 'Smart Add';
+  if(!platformKey){
+    if(cls.envName && !cls.provider){
+      const parts = cls.envName.split('_').filter(Boolean);
+      const first = parts.length > 1 ? parts[0] : '';
+      if(first && !/^(?:API|APP|SECRET|KEY|TOKEN|AUTH|DB|PRIVATE|ACCESS|CLIENT|SERVICE|MY|THE|NEXT|PUBLIC|REACT|VITE)$/i.test(first)){ platformKey = 'custom:' + first.toLowerCase(); platformName = smartTitle(first); }
+      else { platformKey = 'custom:environment'; platformName = 'Environment Variables'; }
+    }
+    else if(kind === 'database'){ platformKey = 'custom:database'; platformName = engineName ? engineName + ' Database' : 'Database'; }
+    else if(kind === 'ssh'){ platformKey = 'custom:server'; platformName = 'Server'; }
+    else if(cls.totp){ platformKey = 'custom:authenticator'; platformName = 'Authenticator'; }
+    else if(cls.note){ platformKey = 'custom:secure-notes'; platformName = 'Secure Notes'; }
+    else { platformKey = 'custom:smart-add'; platformName = 'Smart Add'; }
+  }
   platformKey = platformKey.slice(0, 80); platformName = platformName.slice(0, SMART_CAPS.name);
-  const label = prov ? prov.label : (kind === 'database' ? 'Database connection' : kind === 'ssh' ? 'Server profile' : kind === 'api_key' ? 'API credential' : cls.wifi ? 'Wi-Fi credential' : cls.note ? 'Secure note' : cls.license ? 'License or recovery code' : 'Website login');
+  const label = prov ? prov.label : (cls.totp ? 'Authenticator (TOTP) secret' : kind === 'database' ? 'Database connection' : kind === 'ssh' ? 'Server profile' : cls.router ? 'Router admin login' : kind === 'api_key' ? 'API credential' : cls.wifi ? 'Wi-Fi credential' : cls.note ? 'Secure note' : cls.license ? 'License or recovery code' : 'Website login');
   return { kind, platformKey, platformName, color, label };
 }
 function smartBuildDrafts(text){
@@ -3305,44 +4534,74 @@ function smartBuildDrafts(text){
   if(!raw.trim()) return [];
   const parts = smartSplitEntries(raw);
   const drafts = [];
-  for(const part of parts.slice(0, 8)){
-    const cls = smartClassifyInput(part);
-    const tpl = smartSelectTemplate(cls, cls.fields, part);
+  for(const item of parts.slice(0, 8)){
+    const part = typeof item === 'string' ? item : item.text;
+    const pre = typeof item === 'string' ? null : (item.pre || null);
+    const cls = smartClassifyInput(part, pre);
+    const prepped = smartPrep(part);
+    const tpl = smartSelectTemplate(cls, cls.fields, prepped);
     const f = cls.fields || {};
     const credSecret = (cls.creds && cls.creds.length) ? cls.creds[0].value : '';
     const email0 = (f.emails && f.emails.length) ? f.emails[0] : '';
     let alias = '', username = '', email = '', password = '', host = '', dbname = '', scopes = '', notes = SMART_NOTE;
+    const extras = [];
     if(cls.provider) alias = cls.provider.name;
     else if(cls.wifi) alias = f.ssid || '';
-    else if(tpl.platformName && tpl.platformKey.indexOf('custom:') !== 0 && cls.kind === 'login') alias = '';
+    if(cls.envName && !cls.provider) alias = smartTitle(cls.envName);
     if(f.username) username = f.username;
-    else if(email0 && !tpl.platformKey) username = '';
     if(email0) email = email0;
-    if(tpl.kind === 'api_key') password = f.password || credSecret;
+    if(tpl.kind === 'api_key'){
+      if(cls.totp && f.totp){ password = f.totp.secret; alias = f.totp.account || f.totp.issuer || 'Authenticator'; scopes = '2FA (' + ((f.totp.type || 'totp').toUpperCase()) + ')'; }
+      else if(cls.awsPair){ const sec = cls.creds.find(c => c.awsSecret); password = sec ? sec.value : credSecret; const akia = (cls.creds[0] && cls.creds[0].value) || ''; alias = ('AWS ' + akia).slice(0, SMART_CAPS.alias); extras.push('access key ID ' + akia, 'secret access key is saved in the secret field'); }
+      else if(cls.keyPair){ password = f.secretKey; alias = ('Key ' + f.keyid).slice(0, SMART_CAPS.alias); extras.push('key ID ' + f.keyid); }
+      else password = f.password || credSecret;
+      if(!alias && !cls.provider && !cls.totp && !cls.awsPair && !cls.keyPair){ alias = smartGuessLabel(prepped); }
+      if(f.scopes) scopes = f.scopes;
+      if(f.keyid && !cls.keyPair && !cls.awsPair) extras.push('key ID ' + f.keyid);
+      if(f.secretKey && !cls.keyPair && password !== f.secretKey) extras.push('has a separate secret key');
+      if(f.webhook) extras.push('webhook ' + f.webhook.slice(0, 120));
+    }
     else if(tpl.kind === 'ssh' || tpl.kind === 'database') password = f.password || (/-----BEGIN/.test(part) ? part.trim().slice(0, SMART_CAPS.password) : '');
-    else password = f.password || '';
+    else password = f.password || ((cls.license || cls.pinOnly) ? (f.license || f.recovery || f.pin) : '') || '';
+    if(tpl.kind === 'login' && !password && f.pin){ password = f.pin; extras.push('PIN or code'); }
+    if(tpl.kind === 'login' && password && f.pin && password !== f.pin) extras.push('PIN ' + f.pin);
     if(f.host) host = f.host;
-    else if(f.urls.length){ const hm = f.urls[0].match(/^https?:\/\/([^/:]+)(?::(\d{2,5}))?/); if(hm) host = hm[1]; }
+    else if(f.urls.length){ const hm = f.urls[0].match(/^[a-z][a-z0-9+.-]{1,12}:\/\/(?:[^\/@]*@)?([^/:?#]+)(?::(\d{2,5}))?/i); if(hm) host = hm[1]; }
+    if(!host && f.site) host = f.site.host;
     if(f.dbname) dbname = f.dbname;
     if(cls.note){
       const firstLine = part.trim().split('\n')[0].trim();
       alias = firstLine.slice(0, 40) || 'Note';
       notes = part.trim().slice(0, SMART_CAPS.notes) || SMART_NOTE;
     } else {
-      const extras = [];
       if(f.port) extras.push('port ' + f.port);
       if(cls.engine) extras.push('engine ' + cls.engine);
       if(cls.wifi && /\bwpa3\b/i.test(part)) extras.push('WPA3');
       else if(cls.wifi && /\bwpa2?\b/i.test(part)) extras.push('WPA2');
-      if(extras.length) notes = SMART_NOTE + ' \u00b7 ' + extras.join(' \u00b7 ');
-      if(cls.license && !password){ notes = SMART_NOTE + ' \u00b7 ' + part.trim().slice(0, 200); }
+      if(f.wifiQr){ if(f.wifiQr.type) extras.push(f.wifiQr.type); if(f.wifiQr.hidden) extras.push('hidden network'); }
+      if(cls.wifi && f.place) extras.push('at ' + f.place);
+      if(cls.router && f.host) extras.push('address ' + f.host);
+      if(tpl.kind === 'ssh' && f.ssh){ if(f.ssh.alias) alias = f.ssh.alias; if(f.ssh.identity) extras.push('identity file ' + f.ssh.identity); }
+      if(cls.envName) extras.push('from variable ' + cls.envName);
+      if(cls.totp && f.totp){ if(f.totp.issuer) extras.push('issuer ' + f.totp.issuer); if(f.totp.account && f.totp.account !== alias) extras.push('account ' + f.totp.account); if(f.totp.type === 'hotp') extras.push('counter based (HOTP)'); if(f.totp.digits && f.totp.digits !== '6') extras.push(f.totp.digits + ' digits'); if(f.totp.period && f.totp.period !== '30') extras.push(f.totp.period + 's period'); }
+      if(f.site && tpl.kind === 'login' && !cls.wifi && !cls.router) extras.push('site ' + (f.site.url || f.site.host).slice(0, 120));
+      if(f.dbextra) extras.push('table or collection ' + f.dbextra);
+      if(f.remail) extras.push('recovery email ' + f.remail);
+      if(f.question) extras.push('security question: ' + f.question.slice(0, 120));
+      if(f.answer) extras.push('security answer: ' + f.answer.slice(0, 120));
+      if(f.recovery && !cls.license) extras.push('recovery code ' + f.recovery.slice(0, 80));
+      if(f.notesHint) extras.push(f.notesHint.slice(0, 160));
+      if(extras.length) notes = SMART_NOTE + ' · ' + extras.join(' · ');
+      if(cls.license && !password){ notes = SMART_NOTE + ' · ' + part.trim().slice(0, 200); }
     }
     if(cls.wifi && !alias && f.ssid) alias = f.ssid;
+    if(!alias && tpl.kind === 'login' && f.nameHint && f.nameHint.toLowerCase() !== tpl.platformName.toLowerCase() && smartCatalogMention(f.nameHint) == null) alias = f.nameHint;
+    if(!alias && tpl.kind === 'login' && f.site && tpl.platformKey.indexOf('custom:') === 0 && !cls.wifi && !cls.router) alias = f.site.host;
     const draft = {
       key:'d' + drafts.length, kind:tpl.kind, label:tpl.label,
       platformKey:tpl.platformKey, platformName:tpl.platformName, color:tpl.color,
       confidence:cls.confidence, reason:cls.reason,
-      account:{ alias:alias.slice(0,SMART_CAPS.alias), username:username.slice(0,SMART_CAPS.username), email:email.slice(0,SMART_CAPS.email), password:String(password).slice(0,SMART_CAPS.password), host:host.slice(0,SMART_CAPS.host), dbname:dbname.slice(0,SMART_CAPS.dbname), scopes:scopes.slice(0,SMART_CAPS.scopes), notes:notes.slice(0,SMART_CAPS.notes) },
+      account:{ alias:alias.slice(0, SMART_CAPS.alias), username:username.slice(0, SMART_CAPS.username), email:email.slice(0, SMART_CAPS.email), password:String(password).slice(0, SMART_CAPS.password), host:host.slice(0, SMART_CAPS.host), dbname:dbname.slice(0, SMART_CAPS.dbname), scopes:scopes.slice(0, SMART_CAPS.scopes), notes:notes.slice(0, SMART_CAPS.notes) },
       dup:null,
     };
     try{ draft.dup = smartFindDuplicate(draft.account.password); }catch(_){ draft.dup = null; }
@@ -3414,12 +4673,17 @@ function smartFindDuplicate(secret){
 /* SMART-ADD-UI-START */
 const SMART_ARROW_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>';
 const SMART_EXAMPLES = [
-  'Paste an API key — sk-ant-… , ghp_… , AKIA…',
-  'Describe it — My work Wi-Fi is called Office-5G…',
-  'Paste a database URL — postgres://user:…@host:5432/db',
-  'Drop a server — Production API, host api.example.com, port 443',
-  'A login — Netflix account, email and password…',
-  'A token — GitHub token for my personal account…',
+  'Paste anything: a key, a login, a .env file, a QR text...',
+  'my netflix password is hunter2, email bob@example.com',
+  'Paste a .env file and I will split every key into its own entry',
+  'ssh deploy@203.0.113.7 -p 2222',
+  'WIFI:T:WPA;S:Oak-5G;P:sunflower123;;',
+  'otpauth://totp/GitHub:me@example.com?secret=...',
+  'Paste keys: sk-ant-..., ghp_..., hf_..., SG...., AKIA...',
+  'curl -u admin:secret https://api.example.com/v1',
+  'email,password,site (a CSV row, header or not)',
+  'Paste a database URL: postgres://user:...@host:5432/db',
+  'List five things on five lines and I will sort them all',
 ];
 let SMART_DRAFTS = null, SMART_TIMER = null, SMART_PH = 0;
 /* Drops unsaved input and drafts. Called on cancel, lock, and view entry. */
@@ -3434,11 +4698,11 @@ function renderSmart(){
   try{ if(SMART_TIMER){ clearInterval(SMART_TIMER); SMART_TIMER = null; } }catch(_){}
   SMART_DRAFTS = null;
   main.innerHTML = `
-    <div class="view-head"><div><h1>Smart Add</h1><div class="sub">Paste or describe anything to save. Guessed locally on this device — nothing is sent anywhere. Review every draft before saving.</div></div></div>
+    <div class="view-head"><div><h1>Smart Add</h1><div class="sub">Paste or describe anything to save. Guessed locally on this device. Nothing is sent anywhere. Review every draft before saving.</div></div></div>
     <div class="smart-hero">
       <div class="smart-crest" id="smartcrest"></div>
       <h2>How Can I Help You?</h2>
-      <div class="smart-sub">Drop a key, token, login, Wi-Fi password, server, or database detail. AEGIS drafts the entry for you.</div>
+      <div class="smart-sub">Drop a key, token, login, Wi-Fi password, server, database, .env file or authenticator code, in almost any layout or with typos. AEGIS reads it and drafts every entry for you.</div>
       <form class="smart-bar" id="smartBar" autocomplete="off">
         <textarea id="smartInput" rows="1" maxlength="20000" spellcheck="false" placeholder=""></textarea>
         <button type="submit" class="smart-arrow" id="smartGo" disabled title="Recognize" aria-label="Recognize">${SMART_ARROW_SVG}</button>
@@ -3509,7 +4773,7 @@ function smartPaintResults(){
   SMART_DRAFTS.forEach((d, i)=>{
     const el = document.createElement('div');
     el.className = 'smart-card';
-    const verdict = d.confidence === SMART_CONF.HIGH ? ('Likely ' + d.label + '.') : d.confidence === SMART_CONF.MED ? ('Possible ' + d.label + ' — check before saving.') : 'Unsure — drafted as a secure note. Correct the type if needed.';
+    const verdict = d.confidence === SMART_CONF.HIGH ? ('Likely ' + d.label + '.') : d.confidence === SMART_CONF.MED ? ('Possible ' + d.label + ', check before saving.') : 'Unsure: drafted as a secure note. Correct the type if needed.';
     const probs = smartValidateDraft(d);
     const dup = d.dup ? `<div class="dup">Possible duplicate of ${esc(d.dup.alias || 'an entry')} on ${esc(d.dup.platform || 'a platform')}.</div>` : '';
     const kindBtns = [['login','Login'],['api_key','API key'],['ssh','SSH'],['database','Database']].map(([k,lbl])=>`<button type="button" class="opt ${d.kind===k?'sel':''}" data-i="${i}" data-k="${k}">${lbl}</button>`).join('');
@@ -3542,7 +4806,7 @@ function smartPaintResults(){
     el.innerHTML = `
       ${multi ? `<label class="smart-multi"><input type="checkbox" id="sm_sel_${i}" checked /> Entry ${i + 1} of ${SMART_DRAFTS.length}</label>` : ''}
       <div class="verdict">${esc(verdict)}</div>
-      <div class="why">${esc(d.reason || '')} Review the fields — nothing is saved yet.</div>
+      <div class="why">${esc(d.reason || '')} Review the fields. Nothing is saved yet.</div>
       ${dup}
       <div class="seg" style="margin-bottom:12px">${kindBtns}</div>
       ${fields}
@@ -3870,7 +5134,11 @@ function escAttr(s){ return (s==null?'':String(s)).replace(/&/g,'&amp;').replace
 let CLIP_TIMER=null, CLIP_PENDING=false;
 /* writeText('') is refused while the window is unfocused (the usual case: you copy, then switch to another app to paste).
    Never swallow that: remember it and retry the instant the window is focused again, and at lock. */
+/* Inside the Python window (pywebview) the launcher owns the REAL OS clipboard: it clears only if the clipboard still holds
+   what we copied, so it can never wipe something newer, and it works while the window is unfocused. */
+const PYBRIDGE = ()=>{ try{ return (window.pywebview && window.pywebview.api && window.pywebview.api.copy_secret) ? window.pywebview.api : null; }catch(_){ return null; } };
 async function clearClipboardNow(){
+  try{ const b = PYBRIDGE(); if(b){ await b.clear_clipboard(); CLIP_PENDING = false; return; } }catch(_){}
   try{ if(navigator.clipboard && window.isSecureContext){ await navigator.clipboard.writeText(''); CLIP_PENDING = false; return; } }catch(_){}
   CLIP_PENDING = true;
 }
@@ -3879,7 +5147,10 @@ async function copyToClipboard(text, btn, secret){
   if(!text){ return; }
   if(!guardSession()) return;                 // a revoked session must not put secrets on the clipboard
   try{
-    if(navigator.clipboard && window.isSecureContext){ await navigator.clipboard.writeText(text); }
+    let viaPython = false;
+    try{ const b = PYBRIDGE(); if(b){ const r = await b.copy_secret(text, secret ? 30 : 0); viaPython = !!(r && r.ok); } }catch(_){}
+    if(viaPython){ /* copied by the Python launcher */ }
+    else if(navigator.clipboard && window.isSecureContext){ await navigator.clipboard.writeText(text); }
     else { const t=document.createElement('textarea'); t.value=text; t.style.position='fixed'; t.style.opacity='0'; document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove(); }
   }catch(e){}
   if(secret){
@@ -4006,6 +5277,9 @@ document.getElementById('search').addEventListener('input', ()=>{
     requestAnimationFrame(function(){ requestAnimationFrame(function(){
       crest.style.opacity='1'; crest.style.transform='none';
       crest.querySelectorAll('svg path').forEach(function(p){ p.style.strokeDashoffset='0'; });
+      /* a dashed stroke has no join where the outline starts and ends, so the finished shield showed a notch at the apex
+         when zoomed in: once the draw-on is done, switch the dash pattern off and the outline is one closed, joined path */
+      setTimeout(function(){ crest.querySelectorAll('svg path').forEach(function(p){ p.style.transition='none'; p.style.strokeDasharray='none'; p.style.strokeDashoffset='0'; }); }, 1700);
       if(title) title.style.opacity='1';
       card.style.opacity='1'; card.style.transform='none';
       if(foot) foot.style.opacity='1';

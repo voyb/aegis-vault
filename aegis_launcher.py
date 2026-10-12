@@ -19,6 +19,7 @@ import platform
 import shutil
 import subprocess
 import sys
+import threading
 import webbrowser
 from pathlib import Path
 from typing import Optional
@@ -140,12 +141,138 @@ def private_dir(path: Path) -> None:
         pass
 
 
+def harden_process() -> list:
+    """Best-effort OS hardening for the process that holds the unlocked vault in memory. Never fatal: each step that the
+    platform refuses is simply skipped. Returns the names of the protections that took effect."""
+    done = []
+    try:
+        os.umask(0o077)                                   # anything we create is private to this user
+        done.append("private-files")
+    except OSError:
+        pass
+    if os.name == "nt":
+        return done
+    try:
+        import resource
+        resource.setrlimit(resource.RLIMIT_CORE, (0, 0))  # a crash must not write the unlocked vault into a core file
+        done.append("no-core-dumps")
+    except Exception:
+        pass
+    try:
+        import ctypes
+        libc = ctypes.CDLL(None, use_errno=True)
+        if sys.platform.startswith("linux"):
+            if libc.prctl(4, 0, 0, 0, 0) == 0:            # PR_SET_DUMPABLE=0: other processes cannot ptrace us or read our memory
+                done.append("not-ptraceable")
+        elif sys.platform == "darwin":
+            if libc.ptrace(31, 0, 0, 0) == 0:             # PT_DENY_ATTACH
+                done.append("not-ptraceable")
+    except Exception:
+        pass
+    return done
+
+
+def _clip_backend():
+    """(write_argv, read_argv) for the operating system's real clipboard, or None. Standard tools only."""
+    system = platform.system()
+    if system == "Darwin":
+        return (["pbcopy"], ["pbpaste"])
+    if system == "Windows":
+        ps = ["powershell", "-NoProfile", "-NonInteractive", "-Command"]
+        return (ps + ["[Console]::InputEncoding=[Text.Encoding]::UTF8; Set-Clipboard -Value ([Console]::In.ReadToEnd())"],
+                ps + ["[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-Clipboard -Raw"])
+    if os.environ.get("WAYLAND_DISPLAY") and shutil.which("wl-copy") and shutil.which("wl-paste"):
+        return (["wl-copy"], ["wl-paste", "--no-newline"])
+    if shutil.which("xclip"):
+        return (["xclip", "-selection", "clipboard", "-i"], ["xclip", "-selection", "clipboard", "-o"])
+    if shutil.which("xsel"):
+        return (["xsel", "-b", "-i"], ["xsel", "-b", "-o"])
+    return None
+
+
+def _clip_write(text: str, backend=None) -> bool:
+    be = backend or _clip_backend()
+    if not be:
+        return False
+    try:
+        subprocess.run(be[0], input=text.encode("utf-8"), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=5, check=True)
+        return True
+    except (OSError, subprocess.SubprocessError):
+        return False
+
+
+def _clip_read(backend=None):
+    be = backend or _clip_backend()
+    if not be:
+        return None
+    try:
+        r = subprocess.run(be[1], capture_output=True, timeout=5)
+        return r.stdout.decode("utf-8", "replace") if r.returncode == 0 else ""
+    except (OSError, subprocess.SubprocessError):
+        return None
+
+
+class Bridge:
+    """The small, deliberate surface the page can call through pywebview (window.pywebview.api).
+    Only the clipboard lives here: the page cannot read files, run commands or reach the network through it.
+
+    Clipboard policy, stated honestly: a copy sets the REAL OS clipboard and, for secrets, schedules a clear. The clear only
+    happens if the clipboard still holds exactly what we put there (compared by SHA-256), so it never wipes something the
+    user copied afterwards. Clipboard managers and history features of the OS can keep their own copies; Aegis cannot reach those."""
+
+    def __init__(self, backend=None) -> None:
+        self._backend = backend
+        self._lock = threading.Lock()
+        self._timer = None
+        self._mine = None
+
+    def copy_secret(self, text, seconds=30):
+        text = str(text)[:100000]
+        try:
+            seconds = max(0, min(300, int(seconds)))
+        except (TypeError, ValueError):
+            seconds = 30
+        if not _clip_write(text, self._backend):
+            return {"ok": False}
+        with self._lock:
+            if self._timer is not None:
+                self._timer.cancel()
+                self._timer = None
+            self._mine = hashlib.sha256(text.encode("utf-8")).hexdigest() if seconds else None
+            if seconds:
+                self._timer = threading.Timer(seconds, self._expire)
+                self._timer.daemon = True
+                self._timer.start()
+        return {"ok": True, "clears": bool(seconds)}
+
+    def clear_clipboard(self):
+        return {"ok": True, "cleared": self._expire()}
+
+    def _expire(self) -> bool:
+        with self._lock:
+            mine, self._mine = self._mine, None
+            if self._timer is not None:
+                self._timer.cancel()
+                self._timer = None
+        if not mine:
+            return False
+        cur = _clip_read(self._backend)
+        if cur is None or hashlib.sha256(cur.encode("utf-8")).hexdigest() != mine:
+            return False                                   # someone copied something else since: leave it alone
+        return _clip_write("", self._backend)
+
+    def shutdown(self) -> None:
+        self._expire()
+
+
 def try_pywebview(index: Path) -> bool:
     """Native window via pywebview. Returns True if it ran."""
     try:
         import webview  # type: ignore
     except ImportError:
+        print("Aegis: no native window library (pip install \"pywebview[qt]\"). Falling back to a browser app window.")
         return False
+    bridge = Bridge()
     try:
         win = webview.create_window(
             "Aegis",
@@ -153,6 +280,7 @@ def try_pywebview(index: Path) -> bool:
             width=WINDOW_W,
             height=WINDOW_H,
             text_select=False,
+            js_api=bridge,
         )
         store = here() / "profile-webview"
         private_dir(store)
@@ -161,6 +289,7 @@ def try_pywebview(index: Path) -> bool:
             webview.start(debug=False, private_mode=False, storage_path=str(store))
         except TypeError:
             webview.start(debug=False)
+        bridge.shutdown()                                  # window closed: clear our clipboard copy if it is still there
         return True
     except Exception as e:
         print(f"pywebview failed ({e}), trying browser app mode.")
@@ -264,6 +393,9 @@ def main() -> None:
             pass
         sys.exit(2)
 
+    protections = harden_process()
+    if protections:
+        print("Aegis hardening: " + ", ".join(protections))
     warn = storage_check(here())
     if warn:
         print(f"Aegis storage warning: {warn}")

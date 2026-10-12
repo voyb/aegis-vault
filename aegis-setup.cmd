@@ -1301,7 +1301,41 @@ def ensure_python_setup(job: "Job", ui: UI, auto_accept: bool = False, dev: bool
             continue
         ui.note("Package install failed: %s" % (err or "unknown error"))
         info[label] = "failed"
+    if info.get("recommended") in ("present", "installed"):
+        info["native"] = ensure_native_window(exe, ui, auto_accept)
     return info
+
+
+def native_backend_ok(python_argv: List[str]) -> bool:
+    """pywebview needs a real window toolkit. Windows (WebView2) and macOS (WebKit) come with the pip install; Linux needs GTK
+    (the `gi` module) or Qt (qtpy plus a Qt binding)."""
+    if os.name == "nt" or __import__("platform").system() == "Darwin":
+        return True
+    if module_available(python_argv, "gi"):
+        return True
+    return module_available(python_argv, "qtpy") and any(
+        module_available(python_argv, m) for m in ("PyQt6", "PySide6", "PyQt5", "PySide2"))
+
+
+def ensure_native_window(python_argv: List[str], ui: "UI", auto_accept: bool) -> str:
+    """Make Aegis open in its own Python window instead of a browser. Best effort: a failure never blocks the install."""
+    if native_backend_ok(python_argv):
+        ui.note("native window ready (Python opens Aegis in its own window)")
+        return "present"
+    if not (auto_accept or ui.ask("Install the Qt window toolkit so Aegis opens in its own Python window, not a browser? (about 150 MB)", default=True)):
+        ui.note("Skipped. Aegis will open in a browser app window instead.")
+        return "skipped"
+    with ui.working("Installing the native window (Qt)"):
+        ok, err, managed = pip_install(python_argv, ["pywebview[qt]"], timeout=900)
+    if ok:
+        ui.ok("native window installed")
+        return "installed"
+    if managed:
+        ui.note("This Python is externally managed, so pip refused. Use a venv, or install your distro's python3-gobject "
+                "and webkit2gtk packages. Until then Aegis opens in a browser app window.")
+        return "skipped-managed"
+    ui.note("Could not install the native window (%s). Aegis will open in a browser app window." % (err or "unknown error"))
+    return "failed"
 
 
 # --------------------------------------------------------------------------

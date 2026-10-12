@@ -30,6 +30,8 @@ I wanted a vault no company could lose or hack. So I made one that stays on my c
 + Special forms for API keys, SSH keys and databases.
 + A fake vault, and an Overkill mode, if someone forces you to open it.
 + Works on Windows, Mac and Linux.
++ Opens in its own Python window, not a browser. Python also blocks crash dumps and memory peeking, and clears the real clipboard for you.
++ Smart Add: paste a key, a login, a Wi-Fi note or a whole .env file and it sorts it out. All on your computer.
 ```
 
 ## $\color{#f85149}{\textbf{CONS:}}$
