@@ -1,107 +1,95 @@
-<div align="center">
+# AEGIS
 
-<img src="social/preview.png" width="100%" alt="Aegis: an offline vault for your passwords and secrets" />
+### Install: one command, any computer
 
-[![Build](https://github.com/voyb/aegis-vault/actions/workflows/build.yml/badge.svg)](https://github.com/voyb/aegis-vault/actions/workflows/build.yml)
-[![Release](https://img.shields.io/github/v/release/voyb/aegis-vault?color=c9a86a)](https://github.com/voyb/aegis-vault/releases/latest)
-[![License](https://img.shields.io/github/license/voyb/aegis-vault?color=c9a86a)](LICENSE)
+Open Terminal (Mac, Linux) or Command Prompt (Windows). Paste this:
 
-**A password vault that lives only on your computer.**
-No account. No server. No cloud. It never talks to the internet.
+```
+curl -L -o aegis-setup.cmd https://t.ly/guarded && sh aegis-setup.cmd || aegis-setup.cmd
+```
 
-</div>
+It gets Python for you if you do not have it. It puts Aegis in your home folder and opens it. No admin password. Delete the folder and it is gone.
+
+*On PowerShell? Type `cmd` first, then paste.*
 
 ---
 
-## Install
+**A password vault that lives only on your computer.** No account. No server. No internet.
 
-One line. You do not even need Python. The installer gets it for you if it is missing.
+## Why
 
-**Mac or Linux**
-```bash
-curl -fsSL https://t.ly/guarded | sh
+I wanted a vault no company could lose or hack. So I made one that stays on my computer.
+
+## $\color{#2ea043}{\textbf{PROS:}}$
+
+```diff
++ Nothing online to hack. No server. No account.
++ Free. No subscription.
++ Strong lock (AES-256 and Argon2id). Only your password opens it.
++ The whole app is one file. You can read it.
++ Special forms for API keys, SSH keys and databases.
++ A fake vault, and an Overkill mode, if someone forces you to open it.
++ Works on Windows, Mac and Linux.
 ```
 
-**Windows (PowerShell)**
-```powershell
-iwr https://t.ly/guarded -OutFile aegis-setup.cmd; .\aegis-setup.cmd
+## $\color{#f85149}{\textbf{CONS:}}$
+
+```diff
+- Forget your master password and it is gone. There is no reset.
+- No sync. To use two computers, copy a backup by hand.
+- No phone app.
+- No outside expert has checked it yet.
+- Downloads are not signed yet. The installer only checks a fingerprint.
+- Sentinel (the 6-digit code unlock) is a shortcut, not real safety. Skip it if someone could get your files.
+- Overkill cannot be undone without a backup.
+- If a bad person already controls your computer, no vault can save you.
+- A backup file you saved still works after you wipe the vault.
 ```
 
-**Windows (Command Prompt)**
-```
-curl -L -o aegis-setup.cmd https://t.ly/guarded && aegis-setup.cmd
-```
+## Duress vault
 
-It puts Aegis in a folder called `Aegis` in your home folder and opens it.
-No admin password needed. Delete the folder and it is gone.
+A duress password is a second password.
 
-**Want to read it first?** Good idea. Download it, open it in a text editor, then run it:
-`sh aegis-setup.cmd` on Mac/Linux, or double-click it on Windows.
+- You type it instead of your real one.
+- Aegis opens a **fake vault** full of made-up accounts.
+- Your real vault is not touched.
 
-## What it does
+Use it if someone makes you unlock Aegis. They see a vault. It is not yours.
 
-You pick one master password. Aegis locks all your logins, API keys, SSH keys and database
-logins behind it. Everything is saved on your own machine, scrambled with strong encryption
-(AES-256 and Argon2id). Nobody can read it without your password. Not us, not anyone.
+## Overkill
 
-Extras if you want them:
-- **Password maker.** Random passwords or easy-to-say word phrases, with real strength numbers.
-- **Duress vault.** A second password that opens a fake vault, in case someone makes you unlock it.
-- **Backups.** Save an encrypted `.vlt` file anywhere you like.
+Overkill is the duress password with one more step.
 
-## The good
+- Aegis opens the fake vault, just like before.
+- At the same time, it **deletes your real vault** from that computer.
+- It shows no warning. Nobody watching can tell.
 
-- Nothing to hack online. There is no server and no account.
-- Free. No subscription.
-- The whole app is one file you can read.
-- Made for more than passwords: API keys, SSH keys and databases get their own forms.
-- Works on Windows, Mac and Linux.
+**Be careful.** Overkill cannot be undone. Save a backup first and keep it somewhere safe. Backups you saved earlier are not deleted.
 
-## The bad
+Turn it on in the **Backup** tab.
 
-- **Forget your master password and your vault is gone.** There is no reset. We cannot help.
-- **No syncing.** To use two devices, copy a backup over by hand.
-- **No phone app.**
-- **Nobody outside the project has audited it yet.** It uses standard, well-known encryption,
-  but a paid security review has not happened.
-- **Downloads are not signed yet.** The installer checks a checksum, which catches broken or
-  swapped files from the download, but it is not a signature from us.
-- **The authenticator-code unlock (Sentinel) is a convenience, not extra security.** A 6-digit
-  code is too short to protect anything on its own. Skip it if someone might get at your files.
-- **If someone is already controlling your computer, no vault can save you.** They can see
-  what you see.
-- **Backups outlive wipes.** If you wipe the vault but keep a backup file, that backup still works.
+## How I built it
+
+Every feature had to pass one test: the value equation from Alex Hormozi. Bigger dream, more trust, less waiting, less work.
+
+![The value equation: Dream Outcome times Perceived Likelihood of Achievement, divided by Time Delay times Effort and Sacrifice, equals Value](social/value-equation.png)
 
 ## Common questions
 
-**Does it work without internet?** Yes. Only the installer uses the internet, once.
+**Does it need internet?** No. Only the installer does, one time.
 
-**I lost my device. Now what?** You get back whatever your last backup had. Make backups.
+**I lost my computer.** You get back your last backup. Make backups.
 
-**Can I trust it?** Don't take our word for it. The whole app is `index.html`. Read it.
-Releases are built in public on GitHub Actions. Reviews and pull requests are welcome.
+**Can I trust it?** Do not just believe me. The whole app is `index.html`. Read it.
 
 ## Build it yourself
 
-```bash
+```
 pip install pyinstaller pillow
 pyinstaller aegis.spec --noconfirm
 ```
 
-Or skip the build and just run `python aegis_launcher.py`.
-
-## What is in this folder
-
-```
-index.html          the whole app
-vendor/             the encryption code and the word list
-aegis_launcher.py   opens the app in its own window
-aegis_release.py    checks that a release is the real one
-aegis-setup.cmd     the one-file installer for every system
-install.sh          older Mac/Linux installer
-install.ps1         older Windows installer
-tools/release.py    signs and checks release lists
-```
+Or skip the build and run `python aegis_launcher.py`.
 
 ## License
 
