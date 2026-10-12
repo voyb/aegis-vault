@@ -1310,7 +1310,9 @@ def ensure_python_setup(job: "Job", ui: UI, auto_accept: bool = False, dev: bool
 
 class Job:
     def __init__(self, dest: Path, repo: str, base_url: str, launch: bool = True,
-                 setup_python: bool = True, dev: bool = False, auto_accept: bool = False) -> None:
+                 setup_python: bool = True, dev: bool = False, auto_accept: bool = False,
+                 channel: str = "release") -> None:
+        self.channel = channel   # "source": the current files from the repo, run by the launcher. "release": packaged build.
         self.dest = dest
         self.repo = repo
         self.base_url = base_url
@@ -1343,7 +1345,152 @@ class UI:
     def ask(self, question: str, default: bool = True) -> bool: return True
 
 
+# --------------------------------------------------------------------------
+# source channel: the CURRENT app, straight from the repo, run by the launcher.
+# Small (about 1 MB), always as new as the repo, and needs only Python. Every
+# file is checked against the repo's SHA256SUMS before anything is installed.
+# --------------------------------------------------------------------------
+
+SOURCE_ALLOW = ("index.html", "aegis_launcher.py", "aegis_release.py")
+
+
+def source_raw_base(job: "Job") -> str:
+    return job.base_url if job.base_url.startswith("https://") and job.base_url != default_base_url(job.repo) \
+        else "https://raw.githubusercontent.com/%s/main" % job.repo
+
+
+def source_wanted(sums: Dict[str, str]) -> List[str]:
+    """Only the files that actually run. Names come from a downloaded list, so each one is checked as a safe relative path."""
+    want = []
+    for name in sums:
+        if name in SOURCE_ALLOW or (name.startswith("vendor/") and name.count("/") == 1):
+            if not re.fullmatch(r"[A-Za-z0-9_.\-]+(/[A-Za-z0-9_.\-]+)?", name) or ".." in name:
+                raise InstallError("unsafe file name in the checksum list: %s" % clean_text(name))
+            want.append(name)
+    if "index.html" not in want or "aegis_launcher.py" not in want:
+        raise InstallError("the checksum list does not cover the app files. Refusing to install.")
+    return sorted(want)
+
+
+def windowed_python(argv: List[str]) -> List[str]:
+    """On Windows use pythonw so no console window sits behind the app."""
+    if os.name != "nt":
+        return list(argv)
+    exe = argv[0]
+    if exe.lower() in ("py", "py.exe"):
+        return ["pyw"] + list(argv[1:])
+    if exe.lower().endswith("python.exe"):
+        w = exe[:-len("python.exe")] + "pythonw.exe"
+        if os.path.isfile(w):
+            return [w] + list(argv[1:])
+    return list(argv)
+
+
+def write_run_script(dest: Path, argv: List[str], system: str) -> Path:
+    """Aegis / Aegis.cmd: one stable command that starts the launcher with the Python that has pywebview."""
+    launcher = dest / "aegis_launcher.py"
+    if system == "Windows":
+        path = dest / "Aegis.cmd"
+        cmd = " ".join('"%s"' % a for a in windowed_python(argv))
+        path.write_text('@echo off\r\ncd /d "%%~dp0"\r\nstart "" %s "%s"\r\n' % (cmd, launcher), encoding="utf-8")
+    else:
+        path = dest / "Aegis"
+        cmd = " ".join("'%s'" % a.replace("'", "'\\''") for a in argv)
+        path.write_text("#!/bin/sh\ncd \"$(dirname \"$0\")\" || exit 1\nexec %s '%s' \"$@\"\n"
+                        % (cmd, str(launcher).replace("'", "'\\''")), encoding="utf-8")
+        os.chmod(path, 0o755)
+    return path
+
+
+def run_source_pipeline(job: "Job", ui: "UI") -> Dict[str, str]:
+    if PINNED_KEYS:
+        raise InstallError("release signing is on: the source channel cannot be signed. Re-run with --release.")
+    base = source_raw_base(job)
+    if not base.startswith("https://"):
+        raise InstallError("refusing non-HTTPS URL")
+    tmp = Path(tempfile.mkdtemp(prefix="aegis-install-"))
+    result: Dict[str, str] = {"dest": str(job.dest), "channel": "source"}
+    try:
+        ui.set_total(4 + (1 if job.launch else 0))
+        ui.step("python")
+        argv: List[str] = [sys.executable]
+        if job.setup_python:
+            pyinfo = ensure_python_setup(job, ui, auto_accept=job.auto_accept, dev=job.dev)
+            if pyinfo.get("python"):
+                result["python"] = pyinfo["python"]
+            found = find_suitable_python()
+            if found is not None:
+                argv = list(found[0])
+        else:
+            ui.note("Python setup skipped (--no-python).")
+
+        ui.step("download")
+        sums_file = tmp / "SHA256SUMS"
+        job._check_cancel()
+        download_file(base + "/SHA256SUMS", sums_file)
+        sums = parse_sums(sums_file.read_text(encoding="utf-8", errors="strict"))
+        wanted = source_wanted(sums)
+        stage = tmp / "stage"
+        total = 0
+        for i, name in enumerate(wanted):
+            job._check_cancel()
+            target = stage.joinpath(*name.split("/"))
+            target.parent.mkdir(parents=True, exist_ok=True)
+            base_done = total
+            total += download_file(base + "/" + name, target,
+                                   progress=lambda d, t, b=base_done, n=name: ui.progress(b + d, None, n),
+                                   cancel=lambda: job.cancelled)
+        ui.ok("downloaded %d files (%s)" % (len(wanted), TUI._human(total)))
+
+        ui.step("verify")
+        with ui.working("Checking every file's SHA-256 fingerprint"):
+            for name in wanted:
+                if sha256_of_file(stage.joinpath(*name.split("/"))) != sums[name]:
+                    raise InstallError("CHECKSUM MISMATCH for %s. Refusing to install." % clean_text(name))
+        ui.ok("all %d files match the published checksums" % len(wanted))
+        ui.note("Note: UNSIGNED BUILD. Checksum-verified only: no release-signing key is pinned yet.")
+        result["sha256"] = "all-files"
+        result["minisign"] = "unsigned"
+        shutil.copy2(sums_file, stage / "SHA256SUMS")
+
+        ui.step("install")
+        job._check_cancel()
+        with ui.working("Copying files into place"):
+            copy_stage_to_dest(stage, job.dest, wanted + ["SHA256SUMS"])
+            for old in ("Aegis.exe",):                      # leftovers of an older packaged install; the vault (profile/) is never touched
+                try:
+                    (job.dest / old).unlink()
+                except OSError:
+                    pass
+            shutil.rmtree(job.dest / "Aegis.app", ignore_errors=True)
+            script = write_run_script(job.dest, argv, job.system)
+        ui.ok("installed to %s" % job.dest)
+        result["installed"] = str(job.dest)
+        result["run"] = str(script) if job.system == "Windows" else '"%s"' % script
+
+        if job.launch:
+            ui.step("launch")
+            try:
+                if job.system == "Windows":
+                    os.startfile(str(script))  # type: ignore[attr-defined]
+                else:
+                    subprocess.Popen([str(script)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                                     stdin=subprocess.DEVNULL, start_new_session=True)
+            except OSError as e:
+                ui.note("could not start it automatically (%s). Run: %s" % (type(e).__name__, result["run"]))
+                result["launch"] = "skipped"
+            else:
+                ui.ok("launched")
+                result["launch"] = "ok"
+        return result
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+
+
+
 def run_pipeline(job: Job, ui: UI) -> Dict[str, str]:
+    if job.channel == "source":
+        return run_source_pipeline(job, ui)
     if not job.base_url.startswith("https://"):
         raise InstallError("refusing non-HTTPS release URL")
     tmp = Path(tempfile.mkdtemp(prefix="aegis-install-"))
@@ -1746,7 +1893,9 @@ class TUI(UI):
         self._newline()
         folder = result.get("installed", result.get("dest", ""))
         system = "Windows" if os.name == "nt" else __import__("platform").system()
-        if system == "Darwin":
+        if result.get("run"):
+            run = result["run"]
+        elif system == "Darwin":
             run = 'open "%s"' % (Path(folder) / "Aegis.app")
         elif system == "Windows":
             run = str(Path(folder) / "Aegis.exe")
@@ -1779,6 +1928,8 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--dest", default=str(default_dest()), help="install folder (default: ~/Aegis)")
     p.add_argument("--repo", default=REPO, help="GitHub repo OWNER/NAME for releases")
     p.add_argument("--base-url", default="", help="override the release download URL (must be https://)")
+    p.add_argument("--release", action="store_true",
+                   help="install the packaged release build instead of the current source (default: current source)")
     p.add_argument("--no-launch", action="store_true", help="install but do not launch")
     p.add_argument("--yes", action="store_true", help="skip confirmation prompts")
     p.add_argument("--no-python", action="store_true",
@@ -1800,13 +1951,14 @@ def main(argv: Optional[List[str]] = None) -> int:
         return 2
     job = Job(dest=Path(args.dest).expanduser(), repo=args.repo, base_url=base_url,
               launch=not args.no_launch, setup_python=not args.no_python,
-              dev=args.dev, auto_accept=args.yes)
+              dev=args.dev, auto_accept=args.yes, channel="release" if args.release else "source")
     tui = TUI(quiet=args.quiet)
     t_start = time.time()
     tui.splash()
     tui.note("Installing Aegis to %s" % job.dest)
     if not args.yes:
-        if not tui.ask("Install %s for %s?" % (job.asset, job.system), default=True):
+        what = "the latest Aegis" if job.channel == "source" else job.asset
+        if not tui.ask("Install %s for %s?" % (what, job.system), default=True):
             tui.note("aborted. Nothing was downloaded or changed.")
             return 1
     try:
