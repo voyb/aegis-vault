@@ -1,0 +1,49 @@
+name: star pile
+
+# Redraws the README star pile with the real star count: when someone stars the repo, once a day, and on demand.
+# The picture is published to its own `stars` branch, so the main branch history stays clean. The file carries the date, so the
+# daily run always makes a commit: that keeps the schedule alive (GitHub switches idle schedules off after 60 days of silence).
+on:
+  watch:
+    types: [started]
+  schedule:
+    - cron: "17 4 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: stars
+  cancel-in-progress: true
+
+jobs:
+  pile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Count the stars and draw the pile
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          n=$(gh api "repos/$GITHUB_REPOSITORY" --jq .stargazers_count)
+          echo "STARS=$n" >> "$GITHUB_ENV"
+          python3 tools/star_pile.py "$n" -o "$RUNNER_TEMP/stars.svg" --stamp "$(date -u +%F)"
+
+      - name: Publish to the stars branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin stars:stars 2>/dev/null || true
+          if git rev-parse --verify --quiet stars >/dev/null; then
+            git checkout stars
+          else
+            git checkout --orphan stars
+            git rm -rf --quiet . || true
+          fi
+          cp "$RUNNER_TEMP/stars.svg" stars.svg
+          git add stars.svg
+          if git diff --cached --quiet; then echo "pile unchanged"; exit 0; fi
+          git commit -m "star pile: $STARS"
+          git push origin stars

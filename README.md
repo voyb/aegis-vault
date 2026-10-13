@@ -93,6 +93,12 @@ pyinstaller aegis.spec --noconfirm
 
 Or skip the build and run `python aegis_launcher.py`.
 
+## Thank you
+
+<div align="center">
+<img src="https://raw.githubusercontent.com/voyb/aegis-vault/stars/stars.svg" alt="A pile of gold stars, one for every GitHub star on this repo" width="860" />
+</div>
+
 ## License
 
 MIT. See [LICENSE](LICENSE).
