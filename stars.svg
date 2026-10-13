@@ -1,6 +1,6 @@
 <!-- drawn 2026-10-13 -->
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 420" width="960" height="420" role="img" aria-label="84 GitHub stars">
-<title>84 GitHub stars. Thank you for using my vault.</title>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 420" width="960" height="420" role="img" aria-label="83 GitHub stars">
+<title>83 GitHub stars. Thank you for using my vault.</title>
 <defs>
 <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#15131a"/><stop offset="1" stop-color="#08070a"/></linearGradient>
 <linearGradient id="num" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff6b8"/><stop offset=".5" stop-color="#ffd60a"/><stop offset="1" stop-color="#b87b00"/></linearGradient>
@@ -180,10 +180,8 @@
 <polygon points="372.1,176.8 373.6,181.9 379.0,182.4 374.5,185.5 375.7,190.7 371.5,187.5 366.8,190.2 368.6,185.1 364.6,181.6 369.9,181.7" fill="#fff" fill-opacity=".38"/>
 <polygon points="219.0,167.1 224.3,181.0 239.2,181.6 227.6,191.0 231.6,205.3 219.1,197.1 206.7,205.4 210.6,191.0 198.9,181.8 213.8,181.1" fill="url(#g1)" stroke="#8a5a00" stroke-width=".7" stroke-linejoin="round"/>
 <polygon points="216.5,177.7 218.3,182.5 223.4,182.6 219.4,185.8 220.8,190.7 216.6,187.8 212.3,190.7 213.7,185.8 209.7,182.7 214.8,182.5" fill="#fff" fill-opacity=".38"/>
-<polygon points="405.9,171.2 416.5,183.6 432.0,178.7 423.5,192.6 433.0,205.9 417.1,202.1 407.4,215.2 406.1,198.9 390.6,193.8 405.7,187.5" fill="url(#g0)" stroke="#8a5a00" stroke-width=".7" stroke-linejoin="round"/>
-<polygon points="408.3,181.8 411.9,186.1 417.2,184.4 414.2,189.1 417.5,193.7 412.1,192.3 408.8,196.8 408.4,191.2 403.1,189.5 408.3,187.4" fill="#fff" fill-opacity=".38"/>
 </g>
-<text x="610" y="175" font-family="Georgia,'Times New Roman',serif" font-size="150" font-weight="700" fill="url(#num)">84</text>
+<text x="610" y="175" font-family="Georgia,'Times New Roman',serif" font-size="150" font-weight="700" fill="url(#num)">83</text>
 <text x="614" y="214" font-family="system-ui,-apple-system,Segoe UI,Roboto,sans-serif" font-size="17" letter-spacing="3" fill="#cdbf8f">PEOPLE STARRED AEGIS</text>
 <line x1="614" y1="238" x2="900" y2="238" stroke="#6b5420" stroke-opacity=".8"/>
 <text x="614" y="285" font-family="Georgia,'Times New Roman',serif" font-size="27" font-style="italic" fill="#f4efe0">Thank you for using my vault.</text>
