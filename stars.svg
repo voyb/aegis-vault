@@ -1,6 +1,6 @@
-<!-- drawn 2026-10-23 -->
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 420" width="960" height="420" role="img" aria-label="83 GitHub stars">
-<title>83 GitHub stars. Thank you for using my vault.</title>
+<!-- drawn 2026-10-24 -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 420" width="960" height="420" role="img" aria-label="81 GitHub stars">
+<title>81 GitHub stars. Thank you for using my vault.</title>
 <defs>
 <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#15131a"/><stop offset="1" stop-color="#08070a"/></linearGradient>
 <linearGradient id="num" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff6b8"/><stop offset=".5" stop-color="#ffd60a"/><stop offset="1" stop-color="#b87b00"/></linearGradient>
@@ -176,12 +176,8 @@
 <polygon points="333.9,176.6 336.6,181.5 342.2,180.8 338.4,184.9 340.8,190.0 335.7,187.6 331.6,191.4 332.3,185.9 327.4,183.2 332.9,182.1" fill="#fff" fill-opacity=".38"/>
 <polygon points="253.8,168.0 264.9,178.7 279.1,172.7 272.3,186.6 282.4,198.2 267.1,196.1 259.2,209.3 256.5,194.1 241.5,190.6 255.1,183.4" fill="url(#g3)" stroke="#8a5a00" stroke-width=".7" stroke-linejoin="round"/>
 <polygon points="257.4,177.5 261.1,181.3 266.0,179.2 263.6,183.9 267.1,187.8 261.9,187.0 259.2,191.6 258.3,186.4 253.2,185.2 257.9,182.8" fill="#fff" fill-opacity=".38"/>
-<polygon points="375.6,165.6 380.2,180.7 395.9,182.2 383.0,191.3 386.4,206.7 373.8,197.3 360.2,205.2 365.2,190.3 353.5,179.8 369.2,180.0" fill="url(#g1)" stroke="#8a5a00" stroke-width=".7" stroke-linejoin="round"/>
-<polygon points="372.1,176.8 373.6,181.9 379.0,182.4 374.5,185.5 375.7,190.7 371.5,187.5 366.8,190.2 368.6,185.1 364.6,181.6 369.9,181.7" fill="#fff" fill-opacity=".38"/>
-<polygon points="219.0,167.1 224.3,181.0 239.2,181.6 227.6,191.0 231.6,205.3 219.1,197.1 206.7,205.4 210.6,191.0 198.9,181.8 213.8,181.1" fill="url(#g1)" stroke="#8a5a00" stroke-width=".7" stroke-linejoin="round"/>
-<polygon points="216.5,177.7 218.3,182.5 223.4,182.6 219.4,185.8 220.8,190.7 216.6,187.8 212.3,190.7 213.7,185.8 209.7,182.7 214.8,182.5" fill="#fff" fill-opacity=".38"/>
 </g>
-<text x="610" y="175" font-family="Georgia,'Times New Roman',serif" font-size="150" font-weight="700" fill="url(#num)">83</text>
+<text x="610" y="175" font-family="Georgia,'Times New Roman',serif" font-size="150" font-weight="700" fill="url(#num)">81</text>
 <text x="614" y="214" font-family="system-ui,-apple-system,Segoe UI,Roboto,sans-serif" font-size="17" letter-spacing="3" fill="#cdbf8f">PEOPLE STARRED AEGIS</text>
 <line x1="614" y1="238" x2="900" y2="238" stroke="#6b5420" stroke-opacity=".8"/>
 <text x="614" y="285" font-family="Georgia,'Times New Roman',serif" font-size="27" font-style="italic" fill="#f4efe0">Thank you for using my vault.</text>
